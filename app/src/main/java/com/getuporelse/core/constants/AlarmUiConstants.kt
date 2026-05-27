@@ -4,6 +4,8 @@ object AlarmUiConstants {
     const val APP_BAR_HEIGHT_DP = 56
     const val SCREEN_HORIZONTAL_PADDING_DP = 16
     const val SCREEN_VERTICAL_PADDING_DP = 24
+    const val TOP_BAR_ACTION_SPACING_DP = 8
+    const val DEBUG_ACTION_BUTTON_HEIGHT_DP = 36
     const val ACTION_BAR_BOTTOM_PADDING_DP = 16
     const val ACTION_BAR_END_PADDING_DP = 16
     const val ACTION_BAR_ITEM_SPACING_DP = 16
@@ -23,6 +25,7 @@ object AlarmUiConstants {
     const val START_PUSHING_BUTTON_HEIGHT_DP = 72
 
     const val BRAND_FONT_SIZE_SP = 24
+    const val DEBUG_ACTION_FONT_SIZE_SP = 12
     const val SCREEN_TITLE_FONT_SIZE_SP = 24
     const val REP_BADGE_FONT_SIZE_SP = 14
     const val ALARM_TIME_24_HOUR_FONT_SIZE_SP = 56

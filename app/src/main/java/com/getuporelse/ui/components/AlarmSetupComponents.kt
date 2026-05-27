@@ -17,9 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -35,13 +37,17 @@ import androidx.compose.ui.unit.sp
 import com.getuporelse.core.constants.AlarmUiConstants
 
 @Composable
-fun GetUpOrElseTopBar() {
-    Box(
+fun GetUpOrElseTopBar(
+    showDebugActions: Boolean,
+    onTriggerAlarm: () -> Unit,
+    onStopAlarm: () -> Unit
+) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(AlarmUiConstants.APP_BAR_HEIGHT_DP.dp)
             .padding(horizontal = AlarmUiConstants.SCREEN_HORIZONTAL_PADDING_DP.dp),
-        contentAlignment = Alignment.CenterStart
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "getuporelse",
@@ -49,6 +55,46 @@ fun GetUpOrElseTopBar() {
             fontWeight = FontWeight.Black,
             letterSpacing = 0.sp
         )
+
+        if (showDebugActions) {
+            Spacer(modifier = Modifier.width(AlarmUiConstants.TOP_BAR_ACTION_SPACING_DP.dp))
+            DebugAlarmActions(
+                onTriggerAlarm = onTriggerAlarm,
+                onStopAlarm = onStopAlarm
+            )
+        }
+    }
+}
+
+@Composable
+fun DebugAlarmActions(
+    onTriggerAlarm: () -> Unit,
+    onStopAlarm: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(AlarmUiConstants.TOP_BAR_ACTION_SPACING_DP.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            onClick = onTriggerAlarm,
+            modifier = Modifier.height(AlarmUiConstants.DEBUG_ACTION_BUTTON_HEIGHT_DP.dp)
+        ) {
+            Text(
+                text = "Trigger",
+                fontSize = AlarmUiConstants.DEBUG_ACTION_FONT_SIZE_SP.sp
+            )
+        }
+        OutlinedButton(
+            onClick = onStopAlarm,
+            modifier = Modifier.height(AlarmUiConstants.DEBUG_ACTION_BUTTON_HEIGHT_DP.dp)
+        ) {
+            Text(
+                text = "Stop",
+                fontSize = AlarmUiConstants.DEBUG_ACTION_FONT_SIZE_SP.sp
+            )
+        }
     }
 }
 

@@ -2,6 +2,8 @@ package com.getuporelse.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.getuporelse.BuildConfig
+import com.getuporelse.domain.alarm.DebugAlarmController
 import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
 import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
 import com.getuporelse.domain.models.AlarmSettings
@@ -17,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
     private val getAlarmSettingsUseCase: GetAlarmSettingsUseCase,
-    private val scheduleAlarmUseCase: ScheduleAlarmUseCase
+    private val scheduleAlarmUseCase: ScheduleAlarmUseCase,
+    private val debugAlarmController: DebugAlarmController
 ) : ViewModel() {
 
     private val _settings = MutableStateFlow(AlarmSettings())
@@ -50,5 +53,19 @@ class AlarmViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun triggerDebugAlarm() {
+        if (!BuildConfig.DEBUG) return
+
+        debugAlarmController.triggerAlarm()
+        setRinging(true)
+    }
+
+    fun stopDebugAlarm() {
+        if (!BuildConfig.DEBUG) return
+
+        debugAlarmController.stopAlarm()
+        setRinging(false)
     }
 }

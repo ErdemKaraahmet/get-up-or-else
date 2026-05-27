@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,11 +21,25 @@ import com.getuporelse.core.constants.AlarmUiConstants
 @Composable
 fun AlarmRingingContent(
     onStartExercise: () -> Unit,
+    showDebugActions: Boolean,
+    onTriggerAlarm: () -> Unit,
+    onStopAlarm: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Scaffold(
+        topBar = {
+            GetUpOrElseTopBar(
+                showDebugActions = showDebugActions,
+                onTriggerAlarm = onTriggerAlarm,
+                onStopAlarm = onStopAlarm
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .padding(AlarmUiConstants.SCREEN_VERTICAL_PADDING_DP.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -57,5 +72,6 @@ fun AlarmRingingContent(
                 fontWeight = FontWeight.Bold
             )
         }
+    }
     }
 }

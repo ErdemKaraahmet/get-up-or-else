@@ -6,9 +6,15 @@ import com.getuporelse.ui.components.AlarmRingingContent
 
 @Composable
 fun AlarmRingingScreen(
-    viewModel: AlarmViewModel
+    viewModel: AlarmViewModel,
+    showDebugActions: Boolean = false,
+    onTriggerAlarm: () -> Unit = {},
+    onStopAlarm: () -> Unit = {}
 ) {
     AlarmRingingContent(
+        showDebugActions = showDebugActions,
+        onTriggerAlarm = onTriggerAlarm,
+        onStopAlarm = onStopAlarm,
         onStartExercise = {
             // TODO: Navigate to ExerciseScreen in Phase 3
         }

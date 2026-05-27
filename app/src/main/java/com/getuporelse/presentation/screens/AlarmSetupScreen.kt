@@ -29,7 +29,10 @@ import com.getuporelse.ui.components.NoEmergencyDismissalText
 
 @Composable
 fun AlarmSetupScreen(
-    viewModel: AlarmViewModel
+    viewModel: AlarmViewModel,
+    showDebugActions: Boolean = false,
+    onTriggerAlarm: () -> Unit = {},
+    onStopAlarm: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val use24HourFormat = DateFormat.is24HourFormat(context)
@@ -50,7 +53,13 @@ fun AlarmSetupScreen(
     }
 
     Scaffold(
-        topBar = { GetUpOrElseTopBar() },
+        topBar = {
+            GetUpOrElseTopBar(
+                showDebugActions = showDebugActions,
+                onTriggerAlarm = onTriggerAlarm,
+                onStopAlarm = onStopAlarm
+            )
+        },
         floatingActionButton = {
             AlarmSetupActions(
                 targetReps = settings.targetReps,

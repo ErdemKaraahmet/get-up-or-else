@@ -24,12 +24,21 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            isDebuggable = true
+            manifestPlaceholders["appLabel"] = "GetUpOrElse Debug"
+        }
         release {
+            manifestPlaceholders += mapOf()
             isMinifyEnabled = false
+            manifestPlaceholders["appLabel"] = "GetUpOrElse"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -41,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"

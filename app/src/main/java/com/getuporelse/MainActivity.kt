@@ -46,9 +46,19 @@ class MainActivity : ComponentActivity() {
 
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         if (uiState.isRinging) {
-                            AlarmRingingScreen(viewModel = viewModel)
+                            AlarmRingingScreen(
+                                viewModel = viewModel,
+                                showDebugActions = BuildConfig.DEBUG,
+                                onTriggerAlarm = viewModel::triggerDebugAlarm,
+                                onStopAlarm = viewModel::stopDebugAlarm
+                            )
                         } else {
-                            AlarmSetupScreen(viewModel = viewModel)
+                            AlarmSetupScreen(
+                                viewModel = viewModel,
+                                showDebugActions = BuildConfig.DEBUG,
+                                onTriggerAlarm = viewModel::triggerDebugAlarm,
+                                onStopAlarm = viewModel::stopDebugAlarm
+                            )
                         }
                     }
                 }

@@ -41,6 +41,10 @@ class AlarmForegroundService : Service() {
     }
 
     private fun playAlarm() {
+        if (mediaPlayer?.isPlaying == true) {
+            return
+        }
+
         val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
         
