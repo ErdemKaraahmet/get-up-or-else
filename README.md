@@ -1,17 +1,13 @@
 # GetUpOrElse
 
-A native Android alarm application that requires physical exercises (like push-ups) to stop the alarm.
+A native Android alarm application that requires physical exercises (for now just  push-ups) to stop the alarm.
 
-## Features
-- Set alarm with exercise targets
-- Pose estimation using MediaPipe
-- CameraX integration
-- Alarm survives reboot
-- No escape routes (no emergency dismiss)
+No snooze. No dismiss button. No emergency exit. The alarm stops only when you do your push-ups.
 
-## Architecture
-- Clean Architecture
-- MVVM
-- Jetpack Compose
-- Hilt for Dependency Injection
-- DataStore for persistence
+Maybe this will make it easier to get you out of bed 🤠.
+
+This app is offline-only. It requires:
+- Camera permission (for pose detection)
+- Notification permission (for the alarm service)
+- Exact Alarm permission (for precise timing)
+
