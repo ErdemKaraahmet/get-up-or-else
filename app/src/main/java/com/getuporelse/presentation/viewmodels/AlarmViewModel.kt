@@ -39,23 +39,14 @@ class AlarmViewModel @Inject constructor(
         _uiState.update { it.copy(isRinging = isRinging) }
     }
 
-    fun toggle24HourFormat() {
-        viewModelScope.launch {
-            val currentSettings = _settings.value
-            scheduleAlarmUseCase(currentSettings.copy(use24HourFormat = !currentSettings.use24HourFormat))
-        }
-    }
-
     fun updateAlarm(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean) {
         viewModelScope.launch {
-            val currentSettings = _settings.value
             scheduleAlarmUseCase(
                 AlarmSettings(
                     hour = hour,
                     minute = minute,
                     targetReps = targetReps,
-                    isEnabled = isEnabled,
-                    use24HourFormat = currentSettings.use24HourFormat
+                    isEnabled = isEnabled
                 )
             )
         }

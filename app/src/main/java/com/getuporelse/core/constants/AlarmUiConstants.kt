@@ -13,7 +13,7 @@ object AlarmUiConstants {
     const val REP_BADGE_ICON_SIZE_DP = 18
     const val ADD_ALARM_BUTTON_SIZE_DP = 56
     const val ADD_ALARM_ICON_SIZE_DP = 30
-    const val SECTION_TOP_SPACING_DP = 24
+    const val SECTION_TOP_SPACING_DP = 8
     const val SECTION_ITEM_SPACING_DP = 16
     const val ALARM_CARD_CORNER_RADIUS_DP = 12
     const val ALARM_CARD_PADDING_DP = 16
@@ -26,7 +26,7 @@ object AlarmUiConstants {
     const val SCREEN_TITLE_FONT_SIZE_SP = 24
     const val REP_BADGE_FONT_SIZE_SP = 14
     const val ALARM_TIME_24_HOUR_FONT_SIZE_SP = 56
-    const val ALARM_TIME_12_HOUR_FONT_SIZE_SP = 48
+    const val ALARM_TIME_12_HOUR_FONT_SIZE_SP = 56
     const val ALARM_REPEAT_FONT_SIZE_SP = 14
     const val NO_ESCAPE_FONT_SIZE_SP = 14
     const val RINGING_TITLE_FONT_SIZE_SP = 48

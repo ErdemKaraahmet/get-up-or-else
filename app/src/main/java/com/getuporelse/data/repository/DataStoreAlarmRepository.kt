@@ -27,7 +27,6 @@ class DataStoreAlarmRepository @Inject constructor(
         val MINUTE = intPreferencesKey(Constants.KEY_ALARM_MINUTE)
         val TARGET_REPS = intPreferencesKey(Constants.KEY_TARGET_REPS)
         val ENABLED = booleanPreferencesKey(Constants.KEY_ALARM_ENABLED)
-        val USE_24HOUR = booleanPreferencesKey(Constants.KEY_USE_24HOUR_FORMAT)
     }
 
     override fun getAlarmSettings(): Flow<AlarmSettings> {
@@ -36,8 +35,7 @@ class DataStoreAlarmRepository @Inject constructor(
                 hour = preferences[PreferencesKeys.HOUR] ?: 7,
                 minute = preferences[PreferencesKeys.MINUTE] ?: 0,
                 targetReps = preferences[PreferencesKeys.TARGET_REPS] ?: 10,
-                isEnabled = preferences[PreferencesKeys.ENABLED] ?: false,
-                use24HourFormat = preferences[PreferencesKeys.USE_24HOUR] ?: true
+                isEnabled = preferences[PreferencesKeys.ENABLED] ?: false
             )
         }
     }
@@ -48,7 +46,6 @@ class DataStoreAlarmRepository @Inject constructor(
             preferences[PreferencesKeys.MINUTE] = settings.minute
             preferences[PreferencesKeys.TARGET_REPS] = settings.targetReps
             preferences[PreferencesKeys.ENABLED] = settings.isEnabled
-            preferences[PreferencesKeys.USE_24HOUR] = settings.use24HourFormat
         }
     }
 }

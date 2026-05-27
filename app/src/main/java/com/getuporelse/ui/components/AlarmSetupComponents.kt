@@ -17,10 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -90,13 +88,11 @@ fun AlarmSetupActions(
 }
 
 @Composable
-fun AlarmListHeader(
-    onToggleTimeFormat: () -> Unit
-) {
+fun AlarmListHeader() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Bottom
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "Alarms",
@@ -104,13 +100,6 @@ fun AlarmListHeader(
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
-        IconButton(onClick = onToggleTimeFormat) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "Toggle 24h format",
-                tint = Color.White.copy(alpha = AlarmUiConstants.SECONDARY_ICON_ALPHA)
-            )
-        }
     }
 }
 
@@ -231,7 +220,7 @@ private fun formatAlarmTime(
     } else {
         hour % AlarmUiConstants.HOURS_PER_HALF_DAY
     }
-    val period = if (hour < AlarmUiConstants.HOURS_PER_HALF_DAY) "AM" else "PM"
+    val period = if (hour < AlarmUiConstants.HOURS_PER_HALF_DAY) "am" else "pm"
 
     return AlarmUiConstants.TWELVE_HOUR_TIME_FORMAT.format(displayHour, minute, period)
 }

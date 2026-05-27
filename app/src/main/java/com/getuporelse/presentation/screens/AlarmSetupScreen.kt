@@ -1,5 +1,6 @@
 package com.getuporelse.presentation.screens
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.getuporelse.core.constants.AlarmUiConstants
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
@@ -29,6 +31,8 @@ import com.getuporelse.ui.components.NoEmergencyDismissalText
 fun AlarmSetupScreen(
     viewModel: AlarmViewModel
 ) {
+    val context = LocalContext.current
+    val use24HourFormat = DateFormat.is24HourFormat(context)
     val settings by viewModel.settings.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -36,7 +40,7 @@ fun AlarmSetupScreen(
         GetUpOrElseTimePicker(
             initialHour = settings.hour,
             initialMinute = settings.minute,
-            is24Hour = settings.use24HourFormat,
+            is24Hour = use24HourFormat,
             onConfirm = { hour, minute ->
                 viewModel.updateAlarm(hour, minute, settings.targetReps, settings.isEnabled)
                 showTimePicker = false
@@ -68,9 +72,7 @@ fun AlarmSetupScreen(
         ) {
             Spacer(modifier = Modifier.height(AlarmUiConstants.SECTION_TOP_SPACING_DP.dp))
 
-            AlarmListHeader(
-                onToggleTimeFormat = viewModel::toggle24HourFormat
-            )
+            AlarmListHeader()
 
             Spacer(modifier = Modifier.height(AlarmUiConstants.SECTION_ITEM_SPACING_DP.dp))
 
@@ -78,7 +80,7 @@ fun AlarmSetupScreen(
                 hour = settings.hour,
                 minute = settings.minute,
                 isEnabled = settings.isEnabled,
-                use24HourFormat = settings.use24HourFormat,
+                use24HourFormat = use24HourFormat,
                 onOpenTimePicker = { showTimePicker = true },
                 onEnabledChange = { isEnabled ->
                     viewModel.updateAlarm(

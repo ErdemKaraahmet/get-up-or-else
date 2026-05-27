@@ -8,5 +8,4 @@ object Constants {
     const val KEY_ALARM_MINUTE = "alarm_minute"
     const val KEY_TARGET_REPS = "target_reps"
     const val KEY_ALARM_ENABLED = "alarm_enabled"
-    const val KEY_USE_24HOUR_FORMAT = "use_24hour_format"
 }
