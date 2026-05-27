@@ -1,0 +1,63 @@
+package com.getuporelse.presentation.viewmodels
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
+import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
+import com.getuporelse.domain.models.AlarmSettings
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class AlarmViewModel @Inject constructor(
+    private val getAlarmSettingsUseCase: GetAlarmSettingsUseCase,
+    private val scheduleAlarmUseCase: ScheduleAlarmUseCase
+) : ViewModel() {
+
+    private val _settings = MutableStateFlow(AlarmSettings())
+    val settings: StateFlow<AlarmSettings> = _settings.asStateFlow()
+
+    private val _uiState = MutableStateFlow(AlarmUiState())
+    val uiState: StateFlow<AlarmUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            getAlarmSettingsUseCase().collectLatest { settings ->
+                _settings.value = settings
+                _uiState.update { it.copy(targetReps = settings.targetReps) }
+            }
+        }
+    }
+
+    fun setRinging(isRinging: Boolean) {
+        _uiState.update { it.copy(isRinging = isRinging) }
+    }
+
+    fun toggle24HourFormat() {
+        viewModelScope.launch {
+            val currentSettings = _settings.value
+            scheduleAlarmUseCase(currentSettings.copy(use24HourFormat = !currentSettings.use24HourFormat))
+        }
+    }
+
+    fun updateAlarm(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean) {
+        viewModelScope.launch {
+            val currentSettings = _settings.value
+            scheduleAlarmUseCase(
+                AlarmSettings(
+                    hour = hour,
+                    minute = minute,
+                    targetReps = targetReps,
+                    isEnabled = isEnabled,
+                    use24HourFormat = currentSettings.use24HourFormat
+                )
+            )
+        }
+    }
+}
