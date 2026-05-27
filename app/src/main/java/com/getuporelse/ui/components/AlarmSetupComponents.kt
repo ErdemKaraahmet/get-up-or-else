@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -112,6 +113,12 @@ fun AlarmScheduleCard(
     onOpenTimePicker: () -> Unit,
     onEnabledChange: (Boolean) -> Unit
 ) {
+    val alarmContentAlpha = if (isEnabled) {
+        AlarmUiConstants.ACTIVE_ALARM_ALPHA
+    } else {
+        AlarmUiConstants.INACTIVE_ALARM_ALPHA
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,7 +132,9 @@ fun AlarmScheduleCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
-            Column {
+            Column(
+                modifier = Modifier.alpha(alarmContentAlpha)
+            ) {
                 Text(
                     text = formatAlarmTime(
                         hour = hour,

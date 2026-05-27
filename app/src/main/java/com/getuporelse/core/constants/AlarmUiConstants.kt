@@ -40,5 +40,7 @@ object AlarmUiConstants {
     const val ALARM_CARD_COLOR = 0xFF1C1C1C
     const val SWITCH_CHECKED_TRACK_COLOR = 0xFFBA96DB
     const val SWITCH_UNCHECKED_TRACK_COLOR = 0xFF333333
+    const val ACTIVE_ALARM_ALPHA = 1.0f
+    const val INACTIVE_ALARM_ALPHA = 0.45f
     const val SECONDARY_ICON_ALPHA = 0.6f
 }
