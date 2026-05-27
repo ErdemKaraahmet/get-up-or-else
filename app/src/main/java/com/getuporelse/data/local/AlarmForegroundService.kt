@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.getuporelse.MainActivity
+import com.getuporelse.core.constants.Constants
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -33,7 +34,7 @@ class AlarmForegroundService : Service() {
         // Start AlarmActivity
         val activityIntent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra("is_ringing", true)
+            putExtra(Constants.EXTRA_IS_RINGING, true)
         }
         startActivity(activityIntent)
 
@@ -77,7 +78,10 @@ class AlarmForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putExtra(Constants.EXTRA_IS_RINGING, true)
+        }
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -86,8 +90,8 @@ class AlarmForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("WAKE UP")
-            .setContentText("Do the reps. No escape.")
+            .setContentTitle("GOOD MORNING SUNSHINE!")
+            //.setContentText("Do the reps. No escape.")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)

@@ -45,20 +45,13 @@ fun AlarmRingingContent(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "WAKE UP",
+            text = "GOOD MORNING SUNSHINE!",
             fontSize = AlarmUiConstants.RINGING_TITLE_FONT_SIZE_SP.sp,
             fontWeight = FontWeight.Black,
             color = MaterialTheme.colorScheme.error
         )
 
         Spacer(modifier = Modifier.height(AlarmUiConstants.RINGING_TITLE_SPACING_DP.dp))
-
-        Text(
-            text = "There is no emergency dismissal. No shortcuts.",
-            fontSize = AlarmUiConstants.RINGING_MESSAGE_FONT_SIZE_SP.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
 
         Spacer(modifier = Modifier.height(AlarmUiConstants.RINGING_BUTTON_SPACING_DP.dp))
 

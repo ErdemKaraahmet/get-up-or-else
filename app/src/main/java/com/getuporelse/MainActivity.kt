@@ -2,6 +2,7 @@ package com.getuporelse
 
 import android.app.KeyguardManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -12,10 +13,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.getuporelse.core.constants.Constants
 import com.getuporelse.presentation.screens.AlarmRingingScreen
 import com.getuporelse.presentation.screens.AlarmSetupScreen
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
@@ -24,8 +29,11 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private var ringingIntentRequests by mutableStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        trackRingingIntent(intent)
         
         setupLockScreenFlags()
         
@@ -38,10 +46,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val viewModel: AlarmViewModel = hiltViewModel()
                     val uiState by viewModel.uiState.collectAsState()
-                    
-                    val isRinging = intent.getBooleanExtra("is_ringing", false)
-                    if (isRinging) {
-                        viewModel.setRinging(true)
+
+                    LaunchedEffect(ringingIntentRequests) {
+                        if (ringingIntentRequests > 0) {
+                            viewModel.setRinging(true)
+                        }
                     }
 
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -63,6 +72,18 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        trackRingingIntent(intent)
+    }
+
+    private fun trackRingingIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra(Constants.EXTRA_IS_RINGING, false) == true) {
+            ringingIntentRequests += 1
         }
     }
 

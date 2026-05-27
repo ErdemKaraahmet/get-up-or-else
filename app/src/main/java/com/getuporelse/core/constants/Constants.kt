@@ -2,6 +2,7 @@ package com.getuporelse.core.constants
 
 object Constants {
     const val ALARM_DATASTORE_NAME = "alarm_settings"
+    const val EXTRA_IS_RINGING = "is_ringing"
     
     // DataStore Keys
     const val KEY_ALARM_HOUR = "alarm_hour"
