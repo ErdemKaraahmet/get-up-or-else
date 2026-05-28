@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -85,41 +88,129 @@ fun ExerciseScreen(
     ) {
         if (hasCameraPermission) {
             CameraPreview(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                poseAnalyzer = viewModel.poseAnalyzer
             )
 
-            // Rep counter overlay — top-end
+            // Landmark Overlay
+            if (uiState.currentLandmarks.isNotEmpty()) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+
+                    val pointIndices = listOf(
+                        com.getuporelse.core.constants.PoseConstants.LEFT_SHOULDER,
+                        com.getuporelse.core.constants.PoseConstants.RIGHT_SHOULDER,
+                        com.getuporelse.core.constants.PoseConstants.LEFT_ELBOW,
+                        com.getuporelse.core.constants.PoseConstants.RIGHT_ELBOW,
+                        com.getuporelse.core.constants.PoseConstants.LEFT_WRIST,
+                        com.getuporelse.core.constants.PoseConstants.RIGHT_WRIST
+                    )
+
+                    val connections = listOf(
+                        Pair(com.getuporelse.core.constants.PoseConstants.LEFT_SHOULDER, com.getuporelse.core.constants.PoseConstants.RIGHT_SHOULDER),
+                        Pair(com.getuporelse.core.constants.PoseConstants.LEFT_SHOULDER, com.getuporelse.core.constants.PoseConstants.LEFT_ELBOW),
+                        Pair(com.getuporelse.core.constants.PoseConstants.LEFT_ELBOW, com.getuporelse.core.constants.PoseConstants.LEFT_WRIST),
+                        Pair(com.getuporelse.core.constants.PoseConstants.RIGHT_SHOULDER, com.getuporelse.core.constants.PoseConstants.RIGHT_ELBOW),
+                        Pair(com.getuporelse.core.constants.PoseConstants.RIGHT_ELBOW, com.getuporelse.core.constants.PoseConstants.RIGHT_WRIST)
+                    )
+
+                    // Draw connections
+                    connections.forEach { (start, end) ->
+                        val startLandmark = uiState.currentLandmarks.getOrNull(start)
+                        val endLandmark = uiState.currentLandmarks.getOrNull(end)
+                        if (startLandmark != null && endLandmark != null &&
+                            startLandmark.visibility >= com.getuporelse.core.constants.PoseConstants.MIN_LANDMARK_VISIBILITY &&
+                            endLandmark.visibility >= com.getuporelse.core.constants.PoseConstants.MIN_LANDMARK_VISIBILITY
+                        ) {
+                            // Mirror X coordinate for front camera
+                            val startX = (1f - startLandmark.x) * w
+                            val startY = startLandmark.y * h
+                            val endX = (1f - endLandmark.x) * w
+                            val endY = endLandmark.y * h
+
+                            drawLine(
+                                color = androidx.compose.ui.graphics.Color.Cyan,
+                                start = androidx.compose.ui.geometry.Offset(startX, startY),
+                                end = androidx.compose.ui.geometry.Offset(endX, endY),
+                                strokeWidth = 8f,
+                                cap = androidx.compose.ui.graphics.StrokeCap.Round
+                            )
+                        }
+                    }
+
+                    // Draw points
+                    pointIndices.forEach { idx ->
+                        val landmark = uiState.currentLandmarks.getOrNull(idx)
+                        if (landmark != null && landmark.visibility >= com.getuporelse.core.constants.PoseConstants.MIN_LANDMARK_VISIBILITY) {
+                            val cx = (1f - landmark.x) * w
+                            val cy = landmark.y * h
+                            drawCircle(
+                                color = androidx.compose.ui.graphics.Color.Red,
+                                radius = 12f,
+                                center = androidx.compose.ui.geometry.Offset(cx, cy)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Top HUD
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(ExerciseUiConstants.REP_COUNTER_PADDING_DP.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surface.copy(
                             alpha = ExerciseUiConstants.REP_COUNTER_BACKGROUND_ALPHA
                         ),
                         shape = RoundedCornerShape(ExerciseUiConstants.REP_COUNTER_CORNER_RADIUS_DP.dp)
                     )
-                    .padding(
-                        horizontal = ExerciseUiConstants.REP_COUNTER_PADDING_DP.dp,
-                        vertical = ExerciseUiConstants.FEEDBACK_PADDING_VERTICAL_DP.dp
-                    ),
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(32.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${uiState.repCount}/${uiState.targetReps}",
-                        fontSize = ExerciseUiConstants.REP_COUNTER_FONT_SIZE_SP.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "REPS",
-                        fontSize = ExerciseUiConstants.REP_COUNTER_LABEL_FONT_SIZE_SP.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // Angle overlay (Left)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val angleText = if (uiState.debugElbowAngle > 0.0) "%.0f".format(uiState.debugElbowAngle) else "?"
+                        Text(
+                            text = "∠ $angleText°",
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "> 160° = TOP\n< 100° = BOTTOM",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp
+                        )
+                    }
+
+                    // Rep counter overlay (Right)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "${uiState.repCount}/${uiState.targetReps}",
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "REPS",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 

@@ -24,6 +24,7 @@ class AlarmForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isServiceRunning = true
         createNotificationChannel()
     }
 
@@ -101,6 +102,7 @@ class AlarmForegroundService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isServiceRunning = false
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
@@ -109,6 +111,8 @@ class AlarmForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
+        var isServiceRunning = false
+            private set
         private const val CHANNEL_ID = "alarm_channel"
         private const val NOTIFICATION_ID = 1
     }

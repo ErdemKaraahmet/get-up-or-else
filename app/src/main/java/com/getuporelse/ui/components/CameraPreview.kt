@@ -1,7 +1,9 @@
 package com.getuporelse.ui.components
 
+import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -18,64 +20,102 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.getuporelse.core.constants.ExerciseUiConstants
+import com.getuporelse.domain.pose.PoseAnalyzer
+import java.util.concurrent.Executors
 
 /**
- * CameraX front camera preview composable.
- * Displays a live preview from the front-facing camera using CameraX.
- * The camera is bound to the composable's lifecycle owner and unbound on disposal.
+ * CameraX front camera preview composable with optional pose analysis.
  */
-@Suppress("DEPRECATION")
 @Composable
 fun CameraPreview(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    poseAnalyzer: PoseAnalyzer? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    var cameraProvider: ProcessCameraProvider? = remember { null }
+    // Initialize PreviewView only once
+    val previewView = remember {
+        PreviewView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
+
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
+
+    DisposableEffect(poseAnalyzer, lifecycleOwner) {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+        cameraProviderFuture.addListener({
+            try {
+                val provider = cameraProviderFuture.get()
+                
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+                val cameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                    .build()
+
+                provider.unbindAll()
+
+                if (poseAnalyzer != null) {
+                    val imageAnalysis = ImageAnalysis.Builder()
+                        // Removing explicit resolution to let CameraX choose the best supported combination
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                        .build()
+                        .also { analysis ->
+                            analysis.setAnalyzer(analysisExecutor) { imageProxy ->
+                                poseAnalyzer.analyzeFrame(
+                                    imageProxy,
+                                    imageProxy.imageInfo.rotationDegrees
+                                )
+                            }
+                        }
+
+                    provider.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        preview,
+                        imageAnalysis
+                    )
+                } else {
+                    provider.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        preview
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("CameraPreview", "Camera binding failed", e)
+            }
+        }, ContextCompat.getMainExecutor(context))
+
+        onDispose {
+            try {
+                val provider = cameraProviderFuture.get()
+                provider.unbindAll()
+            } catch (e: Exception) {
+                Log.e("CameraPreview", "Failed to unbind camera", e)
+            }
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {
-            cameraProvider?.unbindAll()
+            analysisExecutor.shutdown()
         }
     }
 
     AndroidView(
-        factory = { ctx ->
-            PreviewView(ctx).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                scaleType = PreviewView.ScaleType.FILL_CENTER
-                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-            }.also { previewView ->
-                cameraProviderFuture.addListener({
-                    val provider = cameraProviderFuture.get()
-                    cameraProvider = provider
-
-                    val preview = Preview.Builder()
-                        .build()
-                        .also { it.setSurfaceProvider(previewView.surfaceProvider) }
-
-                    val cameraSelector = CameraSelector.Builder()
-                        .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
-                        .build()
-
-                    try {
-                        provider.unbindAll()
-                        provider.bindToLifecycle(
-                            lifecycleOwner,
-                            cameraSelector,
-                            preview
-                        )
-                    } catch (_: Exception) {
-                        // Camera binding failed — handled by ExerciseScreen error state
-                    }
-                }, ContextCompat.getMainExecutor(ctx))
-            }
-        },
+        factory = { previewView },
         modifier = modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(ExerciseUiConstants.CAMERA_PREVIEW_CORNER_RADIUS_DP.dp))

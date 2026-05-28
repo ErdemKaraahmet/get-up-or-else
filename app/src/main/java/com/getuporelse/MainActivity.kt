@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     val uiState by viewModel.uiState.collectAsState()
 
                     LaunchedEffect(ringingIntentRequests) {
-                        if (ringingIntentRequests > 0) {
+                        if (ringingIntentRequests > 0 || com.getuporelse.data.local.AlarmForegroundService.isServiceRunning) {
                             viewModel.setRinging(true)
                         }
                     }

@@ -7,8 +7,12 @@ import com.getuporelse.domain.alarm.AlarmController
 import com.getuporelse.domain.alarm.DebugAlarmController
 import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
 import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
+import com.getuporelse.domain.exercise.ExerciseDetector
 import com.getuporelse.domain.models.AlarmSettings
+import com.getuporelse.domain.pose.PoseAnalyzer
+import com.getuporelse.domain.pose.PoseResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +26,9 @@ class AlarmViewModel @Inject constructor(
     private val getAlarmSettingsUseCase: GetAlarmSettingsUseCase,
     private val scheduleAlarmUseCase: ScheduleAlarmUseCase,
     private val alarmController: AlarmController,
-    private val debugAlarmController: DebugAlarmController
+    private val debugAlarmController: DebugAlarmController,
+    val poseAnalyzer: PoseAnalyzer,
+    private val exerciseDetector: ExerciseDetector
 ) : ViewModel() {
 
     private val _settings = MutableStateFlow(AlarmSettings())
@@ -38,6 +44,44 @@ class AlarmViewModel @Inject constructor(
                 _uiState.update { it.copy(targetReps = settings.targetReps) }
             }
         }
+
+        setupPoseAnalysis()
+    }
+
+    private var debugRepOffset = 0
+
+    private fun setupPoseAnalysis() {
+        poseAnalyzer.setResultListener { poseResult ->
+            processPoseResult(poseResult)
+        }
+        poseAnalyzer.setErrorListener { error ->
+            _uiState.update { it.copy(feedback = "Pose detection error") }
+        }
+    }
+
+    /**
+     * Process a pose result through the exercise detector.
+     * Called from the MediaPipe callback thread — UI state updates are thread-safe via StateFlow.
+     */
+    private fun processPoseResult(result: PoseResult) {
+        if (!_uiState.value.isExercising) return
+
+        val exerciseState = exerciseDetector.processPose(result)
+        val targetReps = _uiState.value.targetReps
+        
+        // Add the debug offset so manual increments aren't overwritten
+        val adjustedRepCount = exerciseState.repCount + debugRepOffset
+        val isComplete = adjustedRepCount >= targetReps
+
+        _uiState.update {
+            it.copy(
+                repCount = adjustedRepCount,
+                feedback = exerciseState.feedback,
+                isComplete = isComplete,
+                debugElbowAngle = exerciseState.debugAngle,
+                currentLandmarks = result.landmarks
+            )
+        }
     }
 
     fun setRinging(isRinging: Boolean) {
@@ -45,11 +89,13 @@ class AlarmViewModel @Inject constructor(
     }
 
     fun startExercise() {
+        debugRepOffset = 0
         _uiState.update { it.copy(isExercising = true) }
     }
 
     fun completeExercise() {
         alarmController.stopAlarm()
+        debugRepOffset = 0
         _uiState.update {
             it.copy(
                 isRinging = false,
@@ -90,6 +136,8 @@ class AlarmViewModel @Inject constructor(
     fun debugIncrementRep() {
         if (!BuildConfig.DEBUG) return
 
+        debugRepOffset++
+
         _uiState.update { state ->
             val newCount = (state.repCount + 1).coerceAtMost(state.targetReps)
             state.copy(
@@ -97,5 +145,10 @@ class AlarmViewModel @Inject constructor(
                 isComplete = newCount >= state.targetReps
             )
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        poseAnalyzer.close()
     }
 }
