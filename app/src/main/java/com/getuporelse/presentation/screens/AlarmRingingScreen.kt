@@ -16,7 +16,7 @@ fun AlarmRingingScreen(
         onTriggerAlarm = onTriggerAlarm,
         onStopAlarm = onStopAlarm,
         onStartExercise = {
-            // TODO: Navigate to ExerciseScreen in Phase 3
+            viewModel.startExercise()
         }
     )
 }

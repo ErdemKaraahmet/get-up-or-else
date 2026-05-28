@@ -3,6 +3,7 @@ package com.getuporelse.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.getuporelse.BuildConfig
+import com.getuporelse.domain.alarm.AlarmController
 import com.getuporelse.domain.alarm.DebugAlarmController
 import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
 import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class AlarmViewModel @Inject constructor(
     private val getAlarmSettingsUseCase: GetAlarmSettingsUseCase,
     private val scheduleAlarmUseCase: ScheduleAlarmUseCase,
+    private val alarmController: AlarmController,
     private val debugAlarmController: DebugAlarmController
 ) : ViewModel() {
 
@@ -40,6 +42,22 @@ class AlarmViewModel @Inject constructor(
 
     fun setRinging(isRinging: Boolean) {
         _uiState.update { it.copy(isRinging = isRinging) }
+    }
+
+    fun startExercise() {
+        _uiState.update { it.copy(isExercising = true) }
+    }
+
+    fun completeExercise() {
+        alarmController.stopAlarm()
+        _uiState.update {
+            it.copy(
+                isRinging = false,
+                isExercising = false,
+                isComplete = false,
+                repCount = 0
+            )
+        }
     }
 
     fun updateAlarm(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean) {
@@ -67,5 +85,17 @@ class AlarmViewModel @Inject constructor(
 
         debugAlarmController.stopAlarm()
         setRinging(false)
+    }
+
+    fun debugIncrementRep() {
+        if (!BuildConfig.DEBUG) return
+
+        _uiState.update { state ->
+            val newCount = (state.repCount + 1).coerceAtMost(state.targetReps)
+            state.copy(
+                repCount = newCount,
+                isComplete = newCount >= state.targetReps
+            )
+        }
     }
 }

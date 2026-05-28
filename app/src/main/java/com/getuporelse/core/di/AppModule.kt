@@ -1,9 +1,11 @@
 package com.getuporelse.core.di
 
 import android.content.Context
+import com.getuporelse.data.local.AndroidAlarmController
 import com.getuporelse.data.local.AndroidAlarmScheduler
 import com.getuporelse.data.local.AndroidDebugAlarmController
 import com.getuporelse.data.repository.DataStoreAlarmRepository
+import com.getuporelse.domain.alarm.AlarmController
 import com.getuporelse.domain.alarm.AlarmRepository
 import com.getuporelse.domain.alarm.AlarmScheduler
 import com.getuporelse.domain.alarm.DebugAlarmController
@@ -30,6 +32,12 @@ abstract class AlarmModule {
     abstract fun bindAlarmScheduler(
         androidAlarmScheduler: AndroidAlarmScheduler
     ): AlarmScheduler
+
+    @Binds
+    @Singleton
+    abstract fun bindAlarmController(
+        androidAlarmController: AndroidAlarmController
+    ): AlarmController
 
     @Binds
     @Singleton

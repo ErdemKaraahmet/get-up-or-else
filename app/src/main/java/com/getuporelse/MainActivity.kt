@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.getuporelse.core.constants.Constants
 import com.getuporelse.presentation.screens.AlarmRingingScreen
 import com.getuporelse.presentation.screens.AlarmSetupScreen
+import com.getuporelse.presentation.screens.ExerciseScreen
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
 import com.getuporelse.ui.theme.GetUpOrElseTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,20 +55,33 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        if (uiState.isRinging) {
-                            AlarmRingingScreen(
-                                viewModel = viewModel,
-                                showDebugActions = BuildConfig.DEBUG,
-                                onTriggerAlarm = viewModel::triggerDebugAlarm,
-                                onStopAlarm = viewModel::stopDebugAlarm
-                            )
-                        } else {
-                            AlarmSetupScreen(
-                                viewModel = viewModel,
-                                showDebugActions = BuildConfig.DEBUG,
-                                onTriggerAlarm = viewModel::triggerDebugAlarm,
-                                onStopAlarm = viewModel::stopDebugAlarm
-                            )
+                        when {
+                            uiState.isExercising -> {
+                                ExerciseScreen(
+                                    viewModel = viewModel,
+                                    showDebugActions = BuildConfig.DEBUG,
+                                    onDebugIncrementRep = viewModel::debugIncrementRep,
+                                    onExerciseComplete = {
+                                        viewModel.completeExercise()
+                                    }
+                                )
+                            }
+                            uiState.isRinging -> {
+                                AlarmRingingScreen(
+                                    viewModel = viewModel,
+                                    showDebugActions = BuildConfig.DEBUG,
+                                    onTriggerAlarm = viewModel::triggerDebugAlarm,
+                                    onStopAlarm = viewModel::stopDebugAlarm
+                                )
+                            }
+                            else -> {
+                                AlarmSetupScreen(
+                                    viewModel = viewModel,
+                                    showDebugActions = BuildConfig.DEBUG,
+                                    onTriggerAlarm = viewModel::triggerDebugAlarm,
+                                    onStopAlarm = viewModel::stopDebugAlarm
+                                )
+                            }
                         }
                     }
                 }
