@@ -10,8 +10,8 @@ import com.getuporelse.domain.alarm.AlarmController
 import com.getuporelse.domain.alarm.AlarmRepository
 import com.getuporelse.domain.alarm.AlarmScheduler
 import com.getuporelse.domain.alarm.DebugAlarmController
+import com.getuporelse.domain.exercise.DualEngineExerciseDetector
 import com.getuporelse.domain.exercise.ExerciseDetector
-import com.getuporelse.domain.exercise.PushUpDetector
 import com.getuporelse.domain.pose.PoseAnalyzer
 import dagger.Binds
 import dagger.Module
@@ -66,5 +66,5 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideExerciseDetector(): ExerciseDetector = PushUpDetector()
+    fun provideExerciseDetector(): ExerciseDetector = DualEngineExerciseDetector()
 }
