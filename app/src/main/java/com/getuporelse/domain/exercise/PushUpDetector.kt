@@ -15,7 +15,7 @@ import com.getuporelse.domain.pose.PoseResult
  *
  * All coordinates are normalized against inter-shoulder distance for scale invariance.
  */
-class PushUpDetector : ExerciseDetector {
+class PushUpDetector : ExerciseDetector, IPushUpEngine {
 
     private var repCount = 0
     private var phase = Phase.WAITING_FOR_TOP
@@ -142,11 +142,43 @@ class PushUpDetector : ExerciseDetector {
         }
     }
 
-    fun getRepCount() = repCount
+    override fun getRepCount() = repCount
 
-    fun reset() {
+    override fun reset() {
         repCount = 0
         phase = Phase.WAITING_FOR_TOP
         lastAverageAngle = 0.0
     }
+
+    // NEW: IPushUpEngine implementation
+    override fun processFrame(landmarks: FloatArray): Int {
+        if (landmarks.size != IPushUpEngine.TOTAL_FLOAT_COUNT) {
+            return packResult()
+        }
+        // Unpack flat array into PoseLandmark list
+        val landmarkList = (0 until IPushUpEngine.LANDMARKS_COUNT).map { i ->
+            val base = i * IPushUpEngine.PARAMS_PER_LANDMARK
+            PoseLandmark(
+                x = landmarks[base],
+                y = landmarks[base + 1],
+                z = landmarks[base + 2],
+                presence = landmarks[base + 3],
+                visibility = landmarks[base + 4]
+            )
+        }
+        val result = PoseResult(landmarkList, System.currentTimeMillis())
+        processPose(result)
+        return packResult()
+    }
+
+    private fun packResult(): Int {
+        val phaseInt = when (phase) {
+            Phase.WAITING_FOR_TOP -> 0
+            Phase.TOP -> 1
+            Phase.BOTTOM -> 2
+        }
+        return (phaseInt shl 16) or (repCount and 0xFFFF)
+    }
+
+    override fun destroy() { /* no-op for Kotlin engine */ }
 }
