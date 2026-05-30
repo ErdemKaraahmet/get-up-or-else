@@ -67,7 +67,12 @@ fun CameraPreview(
 
                 if (poseAnalyzer != null) {
                     val imageAnalysis = ImageAnalysis.Builder()
-                        // Removing explicit resolution to let CameraX choose the best supported combination
+                        .setTargetResolution(
+                            android.util.Size(
+                                com.getuporelse.core.constants.PoseConstants.ANALYSIS_TARGET_WIDTH,
+                                com.getuporelse.core.constants.PoseConstants.ANALYSIS_TARGET_HEIGHT
+                            )
+                        )
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build()

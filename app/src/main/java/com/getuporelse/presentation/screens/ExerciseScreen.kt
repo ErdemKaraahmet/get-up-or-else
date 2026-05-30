@@ -210,6 +210,15 @@ fun ExerciseScreen(
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (com.getuporelse.BuildConfig.DEBUG && uiState.fps > 0) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "%.1f FPS".format(uiState.fps),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (uiState.fps > 20) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
             }

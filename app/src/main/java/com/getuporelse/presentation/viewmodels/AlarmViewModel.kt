@@ -59,6 +59,8 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
+    private var lastFrameTimeNs = 0L
+
     /**
      * Process a pose result through the exercise detector.
      * Called from the MediaPipe callback thread — UI state updates are thread-safe via StateFlow.
@@ -73,12 +75,24 @@ class AlarmViewModel @Inject constructor(
         val adjustedRepCount = exerciseState.repCount + debugRepOffset
         val isComplete = adjustedRepCount >= targetReps
 
+        // Calculate FPS
+        val currentFrameTimeNs = System.nanoTime()
+        var currentFps = _uiState.value.fps
+        if (lastFrameTimeNs != 0L) {
+            val frameIntervalNs = currentFrameTimeNs - lastFrameTimeNs
+            if (frameIntervalNs > 0) {
+                currentFps = 1_000_000_000.0 / frameIntervalNs
+            }
+        }
+        lastFrameTimeNs = currentFrameTimeNs
+
         _uiState.update {
             it.copy(
                 repCount = adjustedRepCount,
                 feedback = exerciseState.feedback,
                 isComplete = isComplete,
                 debugElbowAngle = exerciseState.debugAngle,
+                fps = currentFps,
                 currentLandmarks = result.landmarks
             )
         }
