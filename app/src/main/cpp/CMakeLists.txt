@@ -8,6 +8,7 @@ add_library(native-exercise-engine SHARED
     JniBridge.cpp)
 
 target_compile_features(native-exercise-engine PRIVATE cxx_std_17)
+target_compile_options(native-exercise-engine PRIVATE -O3 -ffast-math -Wall)
 target_link_options(native-exercise-engine PRIVATE "-Wl,-z,max-page-size=16384")
 
 find_library(log-lib log)

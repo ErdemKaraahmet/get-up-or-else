@@ -41,9 +41,8 @@ int ExerciseEngine::getRepCount() const {
 // ── Per-frame processing ────────────────────────────────────────────
 
 int ExerciseEngine::processFrame(const float* rawLandmarks) {
-    // 1. Apply EMA smoothing
-    float smoothed[kBufferSize];
-    smoother_.smoothAll(rawLandmarks, smoothed, kLandmarksCount);
+    // 1. (Removed EMA smoothing because MediaPipePoseAnalyzer already smooths)
+    const float* smoothed = rawLandmarks;
 
     // 2. Visibility check for the 6 arm landmarks
     static constexpr int kArmIndices[] = {
