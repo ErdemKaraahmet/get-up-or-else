@@ -5,7 +5,7 @@ import com.getuporelse.data.ndk.NativePushUpEngine
 import com.getuporelse.domain.pose.PoseResult
 
 // Set to true for C++ Native engine, false for Kotlin engine
-private const val USE_NATIVE_ENGINE = true 
+private const val USE_NATIVE_ENGINE = false 
 
 /**
  * Benchmarking and dynamic routing harness that runs either the Kotlin or C++ native engine
@@ -59,17 +59,22 @@ class DualEngineExerciseDetector : ExerciseDetector {
             val natDurationUs = (natEnd - natStart) / 1000
             Log.d(TAG, "$natDurationUs")
 
-            // Get standard feedback and debug values from Kotlin state machine in parallel
-            // to keep high-fidelity UI feedback, but override rep count with native count
-            val ktState = kotlinEngine.processPose(result)
             val nativeReps = IPushUpEngine.unpackRepCount(nativeResult)
+            val nativePhase = IPushUpEngine.unpackPhase(nativeResult)
 
-            // Double check parity for debug logging
-            if (ktState.repCount != nativeReps) {
-                Log.w(TAG_PARITY, "REP MISMATCH: Kotlin=${ktState.repCount}, Native=$nativeReps")
+            val feedback = when (nativePhase) {
+                0 -> "Get into position" // WAITING_FOR_TOP
+                1 -> "Lower your body"   // TOP
+                2 -> "Push up!"          // BOTTOM
+                else -> ""
             }
 
-            ktState.copy(repCount = nativeReps)
+            ExerciseState(
+                repCount = nativeReps,
+                phase = ExercisePhase.ACTIVE,
+                feedback = feedback,
+                debugAngle = 0.0 // Native doesn't expose this yet
+            )
         } else {
             // --- Kotlin engine execution & timing ---
             val ktStart = System.nanoTime()
