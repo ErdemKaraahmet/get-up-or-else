@@ -1,6 +1,7 @@
 package com.getuporelse.presentation.screens
 
 import android.text.format.DateFormat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.getuporelse.core.constants.AlarmUiConstants
+import com.getuporelse.presentation.theme.DarkBackground
+import com.getuporelse.presentation.theme.AlarmDimensions
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
 import com.getuporelse.presentation.components.AlarmListHeader
 import com.getuporelse.presentation.components.AlarmScheduleCard
@@ -38,7 +41,17 @@ fun AlarmSetupScreen(
     val context = LocalContext.current
     val use24HourFormat = DateFormat.is24HourFormat(context)
     val settings by viewModel.settings.collectAsState()
+    val isSettingsLoaded by viewModel.isSettingsLoaded.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
+
+    if (!isSettingsLoaded) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DarkBackground)
+        )
+        return
+    }
 
     if (showTimePicker) {
         GetUpOrElseTimePicker(
@@ -64,29 +77,29 @@ fun AlarmSetupScreen(
         floatingActionButton = {
             AlarmSetupActions(
                 targetReps = settings.targetReps,
-                onEditTargetReps = {
-                    // TODO: Implement rep count picker
+                onEditTargetReps = { reps ->
+                    viewModel.updateAlarm(settings.hour, settings.minute, reps, settings.isEnabled)
                 },
                 onAddAlarm = {
                     // Placeholder for adding more alarms
                 }
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = DarkBackground
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = AlarmUiConstants.SCREEN_HORIZONTAL_PADDING_DP.dp)
+                .padding(horizontal = AlarmDimensions.HorizontalPadding)
         ) {
-            Spacer(modifier = Modifier.height(AlarmUiConstants.SECTION_TOP_SPACING_DP.dp))
+            Spacer(modifier = Modifier.height(AlarmDimensions.SpacingSmall))
 
             AlarmListHeader(
                 onSettingsClick = onNavigateToSettings
             )
 
-            Spacer(modifier = Modifier.height(AlarmUiConstants.SECTION_ITEM_SPACING_DP.dp))
+            Spacer(modifier = Modifier.height(AlarmDimensions.SpacingNormal))
 
             AlarmScheduleCard(
                 hour = settings.hour,
@@ -104,7 +117,7 @@ fun AlarmSetupScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(AlarmUiConstants.NO_ESCAPE_TOP_SPACING_DP.dp))
+            Spacer(modifier = Modifier.height(AlarmDimensions.SpacingLarge))
 
             NoEmergencyDismissalText(
                 modifier = Modifier.align(Alignment.CenterHorizontally)

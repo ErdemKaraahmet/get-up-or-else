@@ -36,6 +36,9 @@ class AlarmViewModel @Inject constructor(
     private val _settings = MutableStateFlow(AlarmSettings())
     val settings: StateFlow<AlarmSettings> = _settings.asStateFlow()
 
+    private val _isSettingsLoaded = MutableStateFlow(false)
+    val isSettingsLoaded: StateFlow<Boolean> = _isSettingsLoaded.asStateFlow()
+
     private val _uiState = MutableStateFlow(AlarmUiState())
     val uiState: StateFlow<AlarmUiState> = _uiState.asStateFlow()
 
@@ -45,6 +48,7 @@ class AlarmViewModel @Inject constructor(
                 _settings.value = settings
                 _uiState.update { it.copy(targetReps = settings.targetReps) }
                 poseAnalyzer.updateGpuSetting(settings.useGpu)
+                _isSettingsLoaded.value = true
             }
         }
 
