@@ -26,6 +26,11 @@ interface PoseAnalyzer {
     fun setErrorListener(listener: (Exception) -> Unit)
 
     /**
+     * Update the GPU acceleration setting and recreate the analyzer if needed.
+     */
+    fun updateGpuSetting(useGpu: Boolean)
+
+    /**
      * Release all resources held by the analyzer.
      */
     fun close()

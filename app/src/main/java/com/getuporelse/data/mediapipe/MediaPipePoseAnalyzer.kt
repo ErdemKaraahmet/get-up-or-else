@@ -1,5 +1,7 @@
 package com.getuporelse.data.mediapipe
 
+import android.util.Log
+import com.google.mediapipe.tasks.core.Delegate
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -34,37 +36,62 @@ class MediaPipePoseAnalyzer @Inject constructor(
     private var errorListener: ((Exception) -> Unit)? = null
     private val smoother = LandmarkSmoother()
 
-    private val poseLandmarker: PoseLandmarker? by lazy {
-        try {
-            val baseOptions = BaseOptions.builder()
-                .setModelAssetPath(PoseConstants.POSE_MODEL_ASSET_PATH)
-                .build()
 
-            val options = PoseLandmarker.PoseLandmarkerOptions.builder()
-                .setBaseOptions(baseOptions)
-                .setRunningMode(RunningMode.LIVE_STREAM)
-                .setNumPoses(1)
-                .setMinPoseDetectionConfidence(PoseConstants.MIN_LANDMARK_VISIBILITY)
-                .setMinTrackingConfidence(PoseConstants.MIN_LANDMARK_VISIBILITY)
-                .setResultListener { result, _ ->
-                    handleResult(result)
-                }
-                .setErrorListener { error ->
-                    errorListener?.invoke(
-                        Exception("MediaPipe pose analysis error: ${error.message}", error)
-                    )
-                }
-                .build()
+    private var poseLandmarker: PoseLandmarker? = null
+    private var currentUseGpu: Boolean = false
+    private var isInitialized: Boolean = false
 
-            PoseLandmarker.createFromOptions(context, options)
+    @Synchronized
+    private fun getOrCreateLandmarker(): PoseLandmarker? {
+        if (isInitialized) return poseLandmarker
+        isInitialized = true
+        
+        poseLandmarker = try {
+            if (currentUseGpu) {
+                try {
+                    createLandmarker(Delegate.GPU)
+                } catch (e: Exception) {
+                    Log.w("MediaPipePoseAnalyzer", "GPU delegate failed, falling back to CPU", e)
+                    createLandmarker()
+                }
+            } else {
+                createLandmarker()
+            }
         } catch (e: Exception) {
             errorListener?.invoke(e)
             null
         }
+        return poseLandmarker
+    }
+    private fun createLandmarker(delegate: Delegate? = null): PoseLandmarker {
+        val baseOptionsBuilder = BaseOptions.builder()
+            .setModelAssetPath(PoseConstants.POSE_MODEL_ASSET_PATH)
+        if (delegate != null) {
+            baseOptionsBuilder.setDelegate(delegate)
+        }
+        val baseOptions = baseOptionsBuilder.build()
+
+        val options = PoseLandmarker.PoseLandmarkerOptions.builder()
+            .setBaseOptions(baseOptions)
+            .setRunningMode(RunningMode.LIVE_STREAM)
+            .setNumPoses(1)
+            .setMinPoseDetectionConfidence(PoseConstants.MIN_LANDMARK_VISIBILITY)
+            .setMinTrackingConfidence(PoseConstants.MIN_LANDMARK_VISIBILITY)
+            .setResultListener { result, _ ->
+                handleResult(result)
+            }
+            .setErrorListener { error ->
+                errorListener?.invoke(
+                    Exception("MediaPipe pose analysis error: ${error.message}", error)
+                )
+            }
+            .build()
+
+        return PoseLandmarker.createFromOptions(context, options)
     }
 
     override fun analyzeFrame(imageProxy: ImageProxy, rotationDegrees: Int) {
-        val landmarker = poseLandmarker
+        val landmarker = getOrCreateLandmarker()
         if (landmarker == null) {
             imageProxy.close()
             return
@@ -74,7 +101,7 @@ class MediaPipePoseAnalyzer @Inject constructor(
             val bitmap = imageProxyToBitmap(imageProxy, rotationDegrees)
             if (bitmap != null) {
                 val mpImage = BitmapImageBuilder(bitmap).build()
-                val timestampMs = imageProxy.imageInfo.timestamp / 1000 // Convert to ms
+                val timestampMs = imageProxy.imageInfo.timestamp / 1_000_000 // Convert ns to ms
                 landmarker.detectAsync(mpImage, timestampMs)
             }
         } catch (e: Exception) {
@@ -84,16 +111,46 @@ class MediaPipePoseAnalyzer @Inject constructor(
         }
     }
 
+    /**
+     * Converts an ImageProxy to a Bitmap, applying the required rotation.
+     * Returns null if conversion fails.
+     */
+    @Suppress("UnsafeOptInUsageError")
+    private fun imageProxyToBitmap(imageProxy: ImageProxy, rotationDegrees: Int): Bitmap? {
+        val bitmap = imageProxy.toBitmap()
+        return if (rotationDegrees != 0) {
+            val matrix = Matrix().apply {
+                postRotate(rotationDegrees.toFloat())
+            }
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        } else {
+            bitmap
+        }
+    }
+
     override fun setResultListener(listener: (PoseResult) -> Unit) {
         resultListener = listener
+    }
+
+    @Synchronized
+    override fun updateGpuSetting(useGpu: Boolean) {
+        if (currentUseGpu != useGpu) {
+            currentUseGpu = useGpu
+            poseLandmarker?.close()
+            poseLandmarker = null
+            isInitialized = false
+        }
     }
 
     override fun setErrorListener(listener: (Exception) -> Unit) {
         errorListener = listener
     }
 
+    @Synchronized
     override fun close() {
         poseLandmarker?.close()
+        poseLandmarker = null
+        isInitialized = false
         smoother.reset()
     }
 
@@ -125,23 +182,5 @@ class MediaPipePoseAnalyzer @Inject constructor(
         )
 
         resultListener?.invoke(poseResult)
-    }
-
-    /**
-     * Converts an ImageProxy to a Bitmap, applying the required rotation.
-     * Returns null if conversion fails.
-     */
-    @Suppress("UnsafeOptInUsageError")
-    private fun imageProxyToBitmap(imageProxy: ImageProxy, rotationDegrees: Int): Bitmap? {
-        val bitmap = imageProxy.toBitmap()
-
-        return if (rotationDegrees != 0) {
-            val matrix = Matrix().apply {
-                postRotate(rotationDegrees.toFloat())
-            }
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        } else {
-            bitmap
-        }
     }
 }
