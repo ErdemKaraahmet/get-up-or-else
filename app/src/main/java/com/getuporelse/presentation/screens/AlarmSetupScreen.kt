@@ -46,7 +46,7 @@ fun AlarmSetupScreen(
             initialMinute = settings.minute,
             is24Hour = use24HourFormat,
             onConfirm = { hour, minute ->
-                viewModel.updateAlarm(hour, minute, settings.targetReps, settings.isEnabled)
+                viewModel.updateAlarm(hour, minute, settings.targetReps, true)
                 showTimePicker = false
             },
             onDismiss = { showTimePicker = false }
