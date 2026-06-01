@@ -7,6 +7,7 @@ import com.getuporelse.domain.alarm.AlarmController
 import com.getuporelse.domain.alarm.DebugAlarmController
 import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
 import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
+import com.getuporelse.domain.alarm.UpdateAlarmSettingsUseCase
 import com.getuporelse.domain.exercise.ExerciseDetector
 import com.getuporelse.domain.models.AlarmSettings
 import com.getuporelse.domain.pose.PoseAnalyzer
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class AlarmViewModel @Inject constructor(
     private val getAlarmSettingsUseCase: GetAlarmSettingsUseCase,
     private val scheduleAlarmUseCase: ScheduleAlarmUseCase,
+    private val updateAlarmSettingsUseCase: UpdateAlarmSettingsUseCase,
     private val alarmController: AlarmController,
     private val debugAlarmController: DebugAlarmController,
     val poseAnalyzer: PoseAnalyzer,
@@ -42,6 +44,7 @@ class AlarmViewModel @Inject constructor(
             getAlarmSettingsUseCase().collectLatest { settings ->
                 _settings.value = settings
                 _uiState.update { it.copy(targetReps = settings.targetReps) }
+                poseAnalyzer.updateGpuSetting(settings.useGpu)
             }
         }
 
@@ -99,12 +102,16 @@ class AlarmViewModel @Inject constructor(
     }
 
     fun setRinging(isRinging: Boolean) {
-        _uiState.update { it.copy(isRinging = isRinging) }
+        _uiState.update { it.copy(isRinging = isRinging, isSettingsOpen = if (isRinging) false else it.isSettingsOpen) }
+    }
+
+    fun setSettingsOpen(isOpen: Boolean) {
+        _uiState.update { it.copy(isSettingsOpen = isOpen) }
     }
 
     fun startExercise() {
         debugRepOffset = 0
-        _uiState.update { it.copy(isExercising = true) }
+        _uiState.update { it.copy(isExercising = true, isSettingsOpen = false) }
     }
 
     fun completeExercise() {
@@ -120,14 +127,29 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
-    fun updateAlarm(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean) {
+    fun updateAlarm(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean, useGpu: Boolean = _settings.value.useGpu) {
         viewModelScope.launch {
             scheduleAlarmUseCase(
                 AlarmSettings(
                     hour = hour,
                     minute = minute,
                     targetReps = targetReps,
-                    isEnabled = isEnabled
+                    isEnabled = isEnabled,
+                    useGpu = useGpu
+                )
+            )
+        }
+    }
+
+    fun updateSettingsOnly(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean, useGpu: Boolean = _settings.value.useGpu) {
+        viewModelScope.launch {
+            updateAlarmSettingsUseCase(
+                AlarmSettings(
+                    hour = hour,
+                    minute = minute,
+                    targetReps = targetReps,
+                    isEnabled = isEnabled,
+                    useGpu = useGpu
                 )
             )
         }

@@ -9,5 +9,6 @@ data class AlarmUiState(
     val isComplete: Boolean = false,
     val debugElbowAngle: Double = 0.0,
     val fps: Double = 0.0,
-    val currentLandmarks: List<com.getuporelse.domain.pose.PoseLandmark> = emptyList()
+    val currentLandmarks: List<com.getuporelse.domain.pose.PoseLandmark> = emptyList(),
+    val isSettingsOpen: Boolean = false
 )

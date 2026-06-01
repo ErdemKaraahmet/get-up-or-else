@@ -74,12 +74,20 @@ class MainActivity : ComponentActivity() {
                                     onStopAlarm = viewModel::stopDebugAlarm
                                 )
                             }
+                            uiState.isSettingsOpen -> {
+                                com.getuporelse.presentation.screens.SettingsScreen(
+                                    viewModel = viewModel,
+                                    onNavigateBack = { viewModel.setSettingsOpen(false) }
+                                )
+                            }
+
                             else -> {
                                 AlarmSetupScreen(
                                     viewModel = viewModel,
                                     showDebugActions = BuildConfig.DEBUG,
                                     onTriggerAlarm = viewModel::triggerDebugAlarm,
-                                    onStopAlarm = viewModel::stopDebugAlarm
+                                    onStopAlarm = viewModel::stopDebugAlarm,
+                                    onNavigateToSettings = { viewModel.setSettingsOpen(true) }
                                 )
                             }
                         }
