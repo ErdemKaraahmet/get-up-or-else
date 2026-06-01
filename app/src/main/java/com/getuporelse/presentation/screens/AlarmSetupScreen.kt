@@ -32,7 +32,8 @@ fun AlarmSetupScreen(
     viewModel: AlarmViewModel,
     showDebugActions: Boolean = false,
     onTriggerAlarm: () -> Unit = {},
-    onStopAlarm: () -> Unit = {}
+    onStopAlarm: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val use24HourFormat = DateFormat.is24HourFormat(context)
@@ -81,7 +82,9 @@ fun AlarmSetupScreen(
         ) {
             Spacer(modifier = Modifier.height(AlarmUiConstants.SECTION_TOP_SPACING_DP.dp))
 
-            AlarmListHeader()
+            AlarmListHeader(
+                onSettingsClick = onNavigateToSettings
+            )
 
             Spacer(modifier = Modifier.height(AlarmUiConstants.SECTION_ITEM_SPACING_DP.dp))
 
