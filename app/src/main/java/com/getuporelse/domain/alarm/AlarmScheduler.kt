@@ -1,8 +1,8 @@
 package com.getuporelse.domain.alarm
 
-import com.getuporelse.domain.models.AlarmSettings
+import com.getuporelse.domain.models.Alarm
 
 interface AlarmScheduler {
-    fun schedule(settings: AlarmSettings)
-    fun cancel()
+    fun schedule(alarm: Alarm, targetReps: Int)
+    fun cancel(alarmId: Int)
 }

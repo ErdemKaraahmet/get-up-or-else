@@ -15,6 +15,7 @@ object AlarmDimensions {
     val PaddingLarge = 24.dp
     val PaddingExtraLarge = 32.dp
 
+    val SpacingMicro = 4.dp
     val SpacingSmall = 8.dp
     val SpacingNormal = 16.dp
     val SpacingLarge = 32.dp

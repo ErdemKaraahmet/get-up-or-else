@@ -26,8 +26,10 @@ class BootReceiver : BroadcastReceiver() {
             val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
                 val settings = alarmRepository.getAlarmSettings().first()
-                if (settings.isEnabled) {
-                    alarmScheduler.schedule(settings)
+                settings.alarms.forEach { alarm ->
+                    if (alarm.isEnabled) {
+                        alarmScheduler.schedule(alarm, settings.targetReps)
+                    }
                 }
             }
         }

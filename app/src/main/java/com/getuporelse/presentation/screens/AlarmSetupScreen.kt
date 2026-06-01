@@ -2,11 +2,16 @@ package com.getuporelse.presentation.screens
 
 import android.text.format.DateFormat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -20,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.getuporelse.core.constants.AlarmUiConstants
+import com.getuporelse.domain.models.Alarm
 import com.getuporelse.presentation.theme.DarkBackground
 import com.getuporelse.presentation.theme.AlarmDimensions
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
@@ -42,10 +48,12 @@ fun AlarmSetupScreen(
     val use24HourFormat = DateFormat.is24HourFormat(context)
     val settings by viewModel.settings.collectAsState()
     val isSettingsLoaded by viewModel.isSettingsLoaded.collectAsState()
-    var showTimePicker by remember { mutableStateOf(false) }
+    
+    var activeEditingAlarm by remember { mutableStateOf<Alarm?>(null) }
+    var showAddAlarmPicker by remember { mutableStateOf(false) }
 
     if (!isSettingsLoaded) {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(DarkBackground)
@@ -53,16 +61,34 @@ fun AlarmSetupScreen(
         return
     }
 
-    if (showTimePicker) {
+    if (activeEditingAlarm != null) {
+        val alarm = activeEditingAlarm!!
         GetUpOrElseTimePicker(
-            initialHour = settings.hour,
-            initialMinute = settings.minute,
+            initialHour = alarm.hour,
+            initialMinute = alarm.minute,
             is24Hour = use24HourFormat,
             onConfirm = { hour, minute ->
-                viewModel.updateAlarm(hour, minute, settings.targetReps, true)
-                showTimePicker = false
+                viewModel.updateAlarm(alarm.id, hour, minute, alarm.isEnabled)
+                activeEditingAlarm = null
             },
-            onDismiss = { showTimePicker = false }
+            onDismiss = { activeEditingAlarm = null },
+            onDelete = {
+                viewModel.deleteAlarm(alarm.id)
+                activeEditingAlarm = null
+            }
+        )
+    }
+
+    if (showAddAlarmPicker) {
+        GetUpOrElseTimePicker(
+            initialHour = 7,
+            initialMinute = 0,
+            is24Hour = use24HourFormat,
+            onConfirm = { hour, minute ->
+                viewModel.addAlarm(hour, minute)
+                showAddAlarmPicker = false
+            },
+            onDismiss = { showAddAlarmPicker = false }
         )
     }
 
@@ -78,10 +104,10 @@ fun AlarmSetupScreen(
             AlarmSetupActions(
                 targetReps = settings.targetReps,
                 onEditTargetReps = { reps ->
-                    viewModel.updateAlarm(settings.hour, settings.minute, reps, settings.isEnabled)
+                    viewModel.updateGlobalReps(reps)
                 },
                 onAddAlarm = {
-                    // Placeholder for adding more alarms
+                    showAddAlarmPicker = true
                 }
             )
         },
@@ -101,27 +127,36 @@ fun AlarmSetupScreen(
 
             Spacer(modifier = Modifier.height(AlarmDimensions.SpacingNormal))
 
-            AlarmScheduleCard(
-                hour = settings.hour,
-                minute = settings.minute,
-                isEnabled = settings.isEnabled,
-                use24HourFormat = use24HourFormat,
-                onOpenTimePicker = { showTimePicker = true },
-                onEnabledChange = { isEnabled ->
-                    viewModel.updateAlarm(
-                        settings.hour,
-                        settings.minute,
-                        settings.targetReps,
-                        isEnabled
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(AlarmDimensions.SpacingNormal)
+            ) {
+                items(settings.alarms, key = { it.id }) { alarm ->
+                    AlarmScheduleCard(
+                        hour = alarm.hour,
+                        minute = alarm.minute,
+                        isEnabled = alarm.isEnabled,
+                        use24HourFormat = use24HourFormat,
+                        onOpenTimePicker = { activeEditingAlarm = alarm },
+                        onEnabledChange = { isEnabled ->
+                            viewModel.toggleAlarm(alarm.id, isEnabled)
+                        }
                     )
                 }
-            )
 
-            Spacer(modifier = Modifier.height(AlarmDimensions.SpacingLarge))
-
-            NoEmergencyDismissalText(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+                item {
+                    Spacer(modifier = Modifier.height(AlarmDimensions.SpacingMicro))
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        NoEmergencyDismissalText()
+                    }
+                    Spacer(modifier = Modifier.height(AlarmDimensions.PaddingLarge + AlarmDimensions.RepPickerHeight))
+                }
+            }
         }
     }
 }

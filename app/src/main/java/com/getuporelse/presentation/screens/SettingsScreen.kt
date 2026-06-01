@@ -69,13 +69,7 @@ fun SettingsScreen(
                 Switch(
                     checked = settings.useGpu,
                     onCheckedChange = { useGpu ->
-                        viewModel.updateSettingsOnly(
-                            hour = settings.hour,
-                            minute = settings.minute,
-                            targetReps = settings.targetReps,
-                            isEnabled = settings.isEnabled,
-                            useGpu = useGpu
-                        )
+                        viewModel.updateGpuSetting(useGpu)
                     }
                 )
             }

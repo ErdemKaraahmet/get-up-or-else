@@ -29,13 +29,21 @@ class AlarmForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
+        val alarmId = intent?.getIntExtra("ALARM_ID", -1) ?: -1
+        val targetReps = intent?.getIntExtra("TARGET_REPS", 10) ?: 10
+
+        activeAlarmId = alarmId
+        activeAlarmReps = targetReps
+
+        startForeground(NOTIFICATION_ID, createNotification(alarmId, targetReps))
         playAlarm()
         
         // Start AlarmActivity
         val activityIntent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra(Constants.EXTRA_IS_RINGING, true)
+            putExtra("ALARM_ID", alarmId)
+            putExtra("TARGET_REPS", targetReps)
         }
         startActivity(activityIntent)
 
@@ -78,10 +86,12 @@ class AlarmForegroundService : Service() {
         }
     }
 
-    private fun createNotification(): Notification {
+    private fun createNotification(alarmId: Int, targetReps: Int): Notification {
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(Constants.EXTRA_IS_RINGING, true)
+            putExtra("ALARM_ID", alarmId)
+            putExtra("TARGET_REPS", targetReps)
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -92,7 +102,6 @@ class AlarmForegroundService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("GOOD MORNING SUNSHINE!")
-            //.setContentText("Do the reps. No escape.")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -112,6 +121,10 @@ class AlarmForegroundService : Service() {
 
     companion object {
         var isServiceRunning = false
+            private set
+        var activeAlarmId = -1
+            private set
+        var activeAlarmReps = 10
             private set
         private const val CHANNEL_ID = "alarm_channel"
         private const val NOTIFICATION_ID = 1

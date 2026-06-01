@@ -7,12 +7,19 @@ class ScheduleAlarmUseCase @Inject constructor(
     private val repository: AlarmRepository,
     private val scheduler: AlarmScheduler
 ) {
-    suspend operator fun invoke(settings: AlarmSettings) {
+    suspend operator fun invoke(settings: AlarmSettings, alarmToCancelId: Int? = null) {
         repository.updateAlarmSettings(settings)
-        if (settings.isEnabled) {
-            scheduler.schedule(settings)
-        } else {
-            scheduler.cancel()
+        
+        if (alarmToCancelId != null) {
+            scheduler.cancel(alarmToCancelId)
+        }
+        
+        settings.alarms.forEach { alarm ->
+            if (alarm.isEnabled) {
+                scheduler.schedule(alarm, settings.targetReps)
+            } else {
+                scheduler.cancel(alarm.id)
+            }
         }
     }
 }

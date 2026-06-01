@@ -9,6 +9,7 @@ import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
 import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
 import com.getuporelse.domain.alarm.UpdateAlarmSettingsUseCase
 import com.getuporelse.domain.exercise.ExerciseDetector
+import com.getuporelse.domain.models.Alarm
 import com.getuporelse.domain.models.AlarmSettings
 import com.getuporelse.domain.pose.PoseAnalyzer
 import com.getuporelse.domain.pose.PoseResult
@@ -105,8 +106,14 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
-    fun setRinging(isRinging: Boolean) {
-        _uiState.update { it.copy(isRinging = isRinging, isSettingsOpen = if (isRinging) false else it.isSettingsOpen) }
+    fun setRinging(isRinging: Boolean, targetReps: Int? = null) {
+        _uiState.update { state ->
+            state.copy(
+                isRinging = isRinging,
+                isSettingsOpen = if (isRinging) false else state.isSettingsOpen,
+                targetReps = targetReps ?: state.targetReps
+            )
+        }
     }
 
     fun setSettingsOpen(isOpen: Boolean) {
@@ -131,31 +138,68 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
-    fun updateAlarm(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean, useGpu: Boolean = _settings.value.useGpu) {
+    fun addAlarm(hour: Int, minute: Int) {
         viewModelScope.launch {
-            scheduleAlarmUseCase(
-                AlarmSettings(
-                    hour = hour,
-                    minute = minute,
-                    targetReps = targetReps,
-                    isEnabled = isEnabled,
-                    useGpu = useGpu
-                )
-            )
+            val currentSettings = _settings.value
+            val newId = (currentSettings.alarms.maxOfOrNull { it.id } ?: 0) + 1
+            val newAlarm = Alarm(id = newId, hour = hour, minute = minute, isEnabled = true)
+            val newSettings = currentSettings.copy(alarms = currentSettings.alarms + newAlarm)
+            scheduleAlarmUseCase(newSettings)
         }
     }
 
-    fun updateSettingsOnly(hour: Int, minute: Int, targetReps: Int, isEnabled: Boolean, useGpu: Boolean = _settings.value.useGpu) {
+    fun updateAlarm(alarmId: Int, hour: Int, minute: Int, isEnabled: Boolean) {
         viewModelScope.launch {
-            updateAlarmSettingsUseCase(
-                AlarmSettings(
-                    hour = hour,
-                    minute = minute,
-                    targetReps = targetReps,
-                    isEnabled = isEnabled,
-                    useGpu = useGpu
-                )
-            )
+            val currentSettings = _settings.value
+            val updatedAlarms = currentSettings.alarms.map { alarm ->
+                if (alarm.id == alarmId) {
+                    alarm.copy(hour = hour, minute = minute, isEnabled = isEnabled)
+                } else {
+                    alarm
+                }
+            }
+            val newSettings = currentSettings.copy(alarms = updatedAlarms)
+            scheduleAlarmUseCase(newSettings)
+        }
+    }
+
+    fun deleteAlarm(alarmId: Int) {
+        viewModelScope.launch {
+            val currentSettings = _settings.value
+            val updatedAlarms = currentSettings.alarms.filter { it.id != alarmId }
+            val newSettings = currentSettings.copy(alarms = updatedAlarms)
+            scheduleAlarmUseCase(newSettings, alarmToCancelId = alarmId)
+        }
+    }
+
+    fun toggleAlarm(alarmId: Int, isEnabled: Boolean) {
+        viewModelScope.launch {
+            val currentSettings = _settings.value
+            val updatedAlarms = currentSettings.alarms.map { alarm ->
+                if (alarm.id == alarmId) {
+                    alarm.copy(isEnabled = isEnabled)
+                } else {
+                    alarm
+                }
+            }
+            val newSettings = currentSettings.copy(alarms = updatedAlarms)
+            scheduleAlarmUseCase(newSettings)
+        }
+    }
+
+    fun updateGlobalReps(targetReps: Int) {
+        viewModelScope.launch {
+            val currentSettings = _settings.value
+            val newSettings = currentSettings.copy(targetReps = targetReps)
+            scheduleAlarmUseCase(newSettings)
+        }
+    }
+
+    fun updateGpuSetting(useGpu: Boolean) {
+        viewModelScope.launch {
+            val currentSettings = _settings.value
+            val newSettings = currentSettings.copy(useGpu = useGpu)
+            updateAlarmSettingsUseCase(newSettings)
         }
     }
 

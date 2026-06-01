@@ -1,18 +1,17 @@
 package com.getuporelse.presentation.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -31,7 +30,8 @@ fun GetUpOrElseTimePicker(
     initialMinute: Int,
     is24Hour: Boolean,
     onConfirm: (Int, Int) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     val state = rememberTimePickerState(
         initialHour = initialHour,
@@ -42,13 +42,33 @@ fun GetUpOrElseTimePicker(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = { onConfirm(state.hour, state.minute) }) {
-                Text("SET", color = Color(0xFFBA96DB))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CANCEL", color = MaterialTheme.colorScheme.primary)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (onDelete != null) {
+                    TextButton(onClick = onDelete) {
+                        Text("DELETE", color = MaterialTheme.colorScheme.secondary)
+                    }
+                } else {
+                    Spacer(modifier = Modifier.width(1.dp))
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("CANCEL", color = MaterialTheme.colorScheme.primary)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = { onConfirm(state.hour, state.minute) }) {
+                        Text("SET", color = MaterialTheme.colorScheme.secondary)
+                    }
+                }
             }
         },
         text = {
@@ -67,18 +87,18 @@ fun GetUpOrElseTimePicker(
                 TimePicker(
                     state = state,
                     colors = TimePickerDefaults.colors(
-                        clockDialColor = Color(0xFF2B2A2A),
+                        clockDialColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         clockDialSelectedContentColor = Color.White,
                         clockDialUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
-                        selectorColor = Color(0xFFBA96DB),
-                        periodSelectorBorderColor = Color(0xFFBA96DB),
-                        periodSelectorSelectedContainerColor = Color(0xFFBA96DB),
+                        selectorColor = MaterialTheme.colorScheme.secondary,
+                        periodSelectorBorderColor = MaterialTheme.colorScheme.secondary,
+                        periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.secondary,
                         periodSelectorUnselectedContainerColor = Color.Transparent,
-                        periodSelectorSelectedContentColor = Color.White,
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onSecondary,
                         periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
-                        timeSelectorSelectedContainerColor = Color(0xFFBA96DB),
-                        timeSelectorUnselectedContainerColor = Color(0xFF2B2A2A),
-                        timeSelectorSelectedContentColor = Color.White,
+                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.secondary,
+                        timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onSecondary,
                         timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )

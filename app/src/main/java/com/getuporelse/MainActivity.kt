@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.getuporelse.core.constants.Constants
 import com.getuporelse.presentation.screens.AlarmRingingScreen
@@ -31,6 +32,8 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private var ringingIntentRequests by mutableStateOf(0)
+    private var activeAlarmId by mutableStateOf(-1)
+    private var activeAlarmReps by mutableStateOf(10)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +53,12 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(ringingIntentRequests) {
                         if (ringingIntentRequests > 0 || com.getuporelse.data.local.AlarmForegroundService.isServiceRunning) {
-                            viewModel.setRinging(true)
+                            val reps = if (ringingIntentRequests > 0) {
+                                activeAlarmReps
+                            } else {
+                                com.getuporelse.data.local.AlarmForegroundService.activeAlarmReps
+                            }
+                            viewModel.setRinging(true, reps)
                         }
                     }
 
@@ -106,6 +114,8 @@ class MainActivity : ComponentActivity() {
     private fun trackRingingIntent(intent: Intent?) {
         if (intent?.getBooleanExtra(Constants.EXTRA_IS_RINGING, false) == true) {
             ringingIntentRequests += 1
+            activeAlarmId = intent.getIntExtra("ALARM_ID", -1)
+            activeAlarmReps = intent.getIntExtra("TARGET_REPS", 10)
         }
     }
 

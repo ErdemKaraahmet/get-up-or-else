@@ -1,9 +1,16 @@
 package com.getuporelse.domain.models
 
+data class Alarm(
+    val id: Int,
+    val hour: Int,
+    val minute: Int,
+    val isEnabled: Boolean
+)
+
 data class AlarmSettings(
-    val hour: Int = 7,
-    val minute: Int = 0,
+    val alarms: List<Alarm> = listOf(
+        Alarm(id = 1, hour = 7, minute = 0, isEnabled = false)
+    ),
     val targetReps: Int = 10,
-    val isEnabled: Boolean = false,
     val useGpu: Boolean = false
 )
