@@ -5,7 +5,7 @@ import com.getuporelse.data.ndk.NativePushUpEngine
 import com.getuporelse.domain.pose.PoseResult
 
 // Set to true for C++ Native engine, false for Kotlin engine
-private const val USE_NATIVE_ENGINE = false 
+private const val USE_NATIVE_ENGINE = true 
 
 /**
  * Benchmarking and dynamic routing harness that runs either the Kotlin or C++ native engine

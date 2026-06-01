@@ -14,11 +14,12 @@ Java_com_getuporelse_data_ndk_NativePushUpEngine_nativeCreate(
 
 JNIEXPORT jint JNICALL
 Java_com_getuporelse_data_ndk_NativePushUpEngine_nativeProcessFrame(
-        JNIEnv* env, jobject /* thiz */, jlong ptr, jobject buffer) {
+        JNIEnv* env, jobject /* thiz */, jlong ptr, jfloatArray landmarks) {
     auto* engine = reinterpret_cast<ExerciseEngine*>(ptr);
-    auto* data = static_cast<float*>(env->GetDirectBufferAddress(buffer));
-    if (data == nullptr) return 0; // Or handle error
-    return engine->processFrame(data);
+    jfloat* data = env->GetFloatArrayElements(landmarks, nullptr);
+    jint result = engine->processFrame(data);
+    env->ReleaseFloatArrayElements(landmarks, data, JNI_ABORT);
+    return result;
 }
 
 JNIEXPORT jint JNICALL
