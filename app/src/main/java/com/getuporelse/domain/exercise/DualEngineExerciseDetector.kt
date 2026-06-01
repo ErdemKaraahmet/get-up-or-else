@@ -69,11 +69,13 @@ class DualEngineExerciseDetector : ExerciseDetector {
                 else -> ""
             }
 
+            val nativeAngle = IPushUpEngine.unpackAngle(nativeResult)
+
             ExerciseState(
                 repCount = nativeReps,
                 phase = ExercisePhase.ACTIVE,
                 feedback = feedback,
-                debugAngle = 0.0 // Native doesn't expose this yet
+                debugAngle = nativeAngle
             )
         } else {
             // --- Kotlin engine execution & timing ---

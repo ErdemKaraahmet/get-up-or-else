@@ -120,10 +120,10 @@ int ExerciseEngine::processFrame(const float* rawLandmarks) {
                 phase_ = TOP;
                 LOGD("Rep %d! Phase → TOP (angle=%.1f)", repCount_, averageAngle);
             }
-            break;
     }
 
-    return (static_cast<int>(phase_) << 16) | (repCount_ & 0xFFFF);
+    int angleInt = static_cast<int>(std::round(averageAngle)) & 0xFF;
+    return (angleInt << 18) | (static_cast<int>(phase_) << 16) | (repCount_ & 0xFFFF);
 }
 
 } // namespace nativeengine
