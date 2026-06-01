@@ -2,7 +2,7 @@ package com.getuporelse.presentation.screens
 
 import androidx.compose.runtime.Composable
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
-import com.getuporelse.ui.components.AlarmRingingContent
+import com.getuporelse.presentation.components.AlarmRingingContent
 
 @Composable
 fun AlarmRingingScreen(

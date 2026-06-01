@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.getuporelse.core.constants.ExerciseUiConstants
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
-import com.getuporelse.ui.components.CameraPreview
+import com.getuporelse.presentation.components.CameraPreview
 
 @Composable
 fun ExerciseScreen(

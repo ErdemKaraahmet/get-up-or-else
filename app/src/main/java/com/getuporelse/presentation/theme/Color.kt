@@ -1,4 +1,4 @@
-package com.getuporelse.ui.theme
+package com.getuporelse.presentation.theme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme

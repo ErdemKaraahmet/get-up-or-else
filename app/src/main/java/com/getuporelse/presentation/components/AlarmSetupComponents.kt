@@ -1,4 +1,4 @@
-package com.getuporelse.ui.components
+package com.getuporelse.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.getuporelse.core.constants.AlarmUiConstants
+import com.getuporelse.presentation.theme.AlarmTypography
+import com.getuporelse.presentation.theme.AlarmDimensions
 
 @Composable
 fun GetUpOrElseTopBar(
@@ -59,7 +61,7 @@ fun GetUpOrElseTopBar(
     ) {
         Text(
             text = "getuporelse",
-            fontSize = AlarmUiConstants.BRAND_FONT_SIZE_SP.sp,
+            fontSize = AlarmTypography.TitleSize,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.sp
         )
@@ -109,34 +111,39 @@ fun DebugAlarmActions(
 @Composable
 fun AlarmSetupActions(
     targetReps: Int,
-    onEditTargetReps: () -> Unit,
+    onEditTargetReps: (Int) -> Unit,
     onAddAlarm: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(
-            bottom = AlarmUiConstants.ACTION_BAR_BOTTOM_PADDING_DP.dp,
-            end = AlarmUiConstants.ACTION_BAR_END_PADDING_DP.dp
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                bottom = AlarmDimensions.PaddingNormal,
+                start = AlarmDimensions.PaddingNormal,
+                end = AlarmDimensions.PaddingNormal
+            )
+            .height(AlarmDimensions.RepPickerHeight) // Exactly 56.dp high
     ) {
-        RepTargetBadge(
-            targetReps = targetReps,
-            onEditTargetReps = onEditTargetReps
+        CapsuleRepPicker(
+            selectedValue = targetReps,
+            onValueChange = onEditTargetReps,
+            modifier = Modifier.weight(1f) // Widen the wheel to fill the remaining space!
         )
 
-        Spacer(modifier = Modifier.width(AlarmUiConstants.ACTION_BAR_ITEM_SPACING_DP.dp))
+        Spacer(modifier = Modifier.width(AlarmDimensions.SpacingNormal))
 
         FloatingActionButton(
             onClick = onAddAlarm,
             containerColor = MaterialTheme.colorScheme.secondary,
             contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = CircleShape,
-            modifier = Modifier.size(AlarmUiConstants.ADD_ALARM_BUTTON_SIZE_DP.dp)
+            modifier = Modifier.size(AlarmDimensions.FloatingButtonSize)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add Alarm",
-                modifier = Modifier.size(AlarmUiConstants.ADD_ALARM_ICON_SIZE_DP.dp)
+                modifier = Modifier.size(AlarmDimensions.AddAlarmIconSize)
             )
         }
     }
@@ -153,7 +160,7 @@ fun AlarmListHeader(onSettingsClick: () -> Unit = {}) {
     ) {
         Text(
             text = "Alarms",
-            fontSize = AlarmUiConstants.SCREEN_TITLE_FONT_SIZE_SP.sp,
+            fontSize = AlarmTypography.TitleSize,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
@@ -227,7 +234,7 @@ fun AlarmScheduleCard(
                 )
                 Text(
                     text = "Everyday",
-                    fontSize = AlarmUiConstants.ALARM_REPEAT_FONT_SIZE_SP.sp,
+                    fontSize = AlarmTypography.SubtitleSize,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -255,44 +262,11 @@ fun NoEmergencyDismissalText(
         text = "There is no emergency dismissal. No shortcuts.",
         color = MaterialTheme.colorScheme.error,
         fontWeight = FontWeight.Bold,
-        fontSize = AlarmUiConstants.NO_ESCAPE_FONT_SIZE_SP.sp,
+        fontSize = AlarmTypography.SubtitleSize,
         modifier = modifier
     )
 }
 
-@Composable
-private fun RepTargetBadge(
-    targetReps: Int,
-    onEditTargetReps: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(
-                horizontal = AlarmUiConstants.REP_BADGE_HORIZONTAL_PADDING_DP.dp,
-                vertical = AlarmUiConstants.REP_BADGE_VERTICAL_PADDING_DP.dp
-            )
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "$targetReps PUSH-UPS",
-                fontSize = AlarmUiConstants.REP_BADGE_FONT_SIZE_SP.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.width(AlarmUiConstants.REP_BADGE_ICON_SPACING_DP.dp))
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit Reps",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(AlarmUiConstants.REP_BADGE_ICON_SIZE_DP.dp)
-                    .clickable(onClick = onEditTargetReps)
-            )
-        }
-    }
-}
 
 private fun formatAlarmTime(
     hour: Int,

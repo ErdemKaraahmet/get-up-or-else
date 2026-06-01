@@ -25,7 +25,7 @@ import com.getuporelse.presentation.screens.AlarmRingingScreen
 import com.getuporelse.presentation.screens.AlarmSetupScreen
 import com.getuporelse.presentation.screens.ExerciseScreen
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
-import com.getuporelse.ui.theme.GetUpOrElseTheme
+import com.getuporelse.presentation.theme.GetUpOrElseTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

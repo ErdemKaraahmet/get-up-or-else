@@ -20,12 +20,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.getuporelse.core.constants.AlarmUiConstants
 import com.getuporelse.presentation.viewmodels.AlarmViewModel
-import com.getuporelse.ui.components.AlarmListHeader
-import com.getuporelse.ui.components.AlarmScheduleCard
-import com.getuporelse.ui.components.AlarmSetupActions
-import com.getuporelse.ui.components.GetUpOrElseTopBar
-import com.getuporelse.ui.components.GetUpOrElseTimePicker
-import com.getuporelse.ui.components.NoEmergencyDismissalText
+import com.getuporelse.presentation.components.AlarmListHeader
+import com.getuporelse.presentation.components.AlarmScheduleCard
+import com.getuporelse.presentation.components.AlarmSetupActions
+import com.getuporelse.presentation.components.GetUpOrElseTopBar
+import com.getuporelse.presentation.components.GetUpOrElseTimePicker
+import com.getuporelse.presentation.components.NoEmergencyDismissalText
 
 @Composable
 fun AlarmSetupScreen(

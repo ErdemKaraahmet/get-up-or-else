@@ -1,4 +1,4 @@
-package com.getuporelse.ui.components
+package com.getuporelse.presentation.components
 
 import android.util.Log
 import android.view.ViewGroup

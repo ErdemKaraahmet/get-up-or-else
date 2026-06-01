@@ -1,4 +1,4 @@
-package com.getuporelse.ui.components
+package com.getuporelse.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.getuporelse.core.constants.AlarmUiConstants
+import com.getuporelse.presentation.theme.AlarmTypography
 
 @Composable
 fun AlarmRingingContent(
@@ -61,7 +62,7 @@ fun AlarmRingingContent(
         ) {
             Text(
                 text = "Start Pushing",
-                fontSize = AlarmUiConstants.START_PUSHING_FONT_SIZE_SP.sp,
+                fontSize = AlarmTypography.TitleSize,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -1,4 +1,4 @@
-package com.getuporelse.ui.components
+package com.getuporelse.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
