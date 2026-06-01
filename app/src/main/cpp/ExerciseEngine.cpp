@@ -24,13 +24,13 @@ static inline float landmarkVisibility(const float* data, int idx) {
 ExerciseEngine::ExerciseEngine()
     : repCount_(0),
       phase_(WAITING_FOR_TOP),
-      lastAverageAngle_(0.0f),
+      topAngle_(0.0),
       smoother_(kEmaAlpha) {}
 
 void ExerciseEngine::reset() {
     repCount_         = 0;
     phase_            = WAITING_FOR_TOP;
-    lastAverageAngle_ = 0.0f;
+    topAngle_         = 0.0;
     smoother_.reset();
 }
 
@@ -91,24 +91,23 @@ int ExerciseEngine::processFrame(const float* rawLandmarks) {
             ? std::abs(avgShoulderY - avgWristY) / interShoulderDistance
             : 0.0;
 
-    // 7. Compute angle delta for noise rejection
-    const double angleDelta = std::abs(averageAngle - static_cast<double>(lastAverageAngle_));
-    lastAverageAngle_ = static_cast<float>(averageAngle);
+    // 7. Compute total descent from the last confirmed top for noise rejection
+    const double descentAngleDelta = topAngle_ - averageAngle;
 
     // 8. State machine — mirrors PushUpDetector.kt exactly
     switch (phase_) {
         case WAITING_FOR_TOP:
             if (averageAngle > kElbowExtensionThresholdDegrees) {
                 phase_ = TOP;
+                topAngle_ = averageAngle;
                 LOGD("Phase → TOP (angle=%.1f)", averageAngle);
             }
             break;
 
         case TOP:
-            // angleDelta is only checked here (not globally), matching Kotlin
             if (averageAngle < kElbowFlexionThresholdDegrees
                 && normalizedYDisplacement >= kMinNormalizedYDisplacement
-                && angleDelta >= kMinAngleDeltaDegrees) {
+                && descentAngleDelta >= kMinAngleDeltaDegrees) {
                 phase_ = BOTTOM;
                 LOGD("Phase → BOTTOM (angle=%.1f, yDisp=%.3f)", averageAngle, normalizedYDisplacement);
             }
@@ -118,6 +117,7 @@ int ExerciseEngine::processFrame(const float* rawLandmarks) {
             if (averageAngle > kElbowExtensionThresholdDegrees) {
                 repCount_++;
                 phase_ = TOP;
+                topAngle_ = averageAngle;
                 LOGD("Rep %d! Phase → TOP (angle=%.1f)", repCount_, averageAngle);
             }
     }

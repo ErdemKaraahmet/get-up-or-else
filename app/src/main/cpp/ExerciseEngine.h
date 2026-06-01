@@ -50,7 +50,7 @@ public:
 private:
     int               repCount_;
     Phase             phase_;
-    float             lastAverageAngle_;
+    double            topAngle_;
     LandmarkSmoother  smoother_;
 };
 

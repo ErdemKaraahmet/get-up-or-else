@@ -19,7 +19,7 @@ class PushUpDetector : ExerciseDetector, IPushUpEngine {
 
     private var repCount = 0
     private var phase = Phase.WAITING_FOR_TOP
-    private var lastAverageAngle = 0.0
+    private var topAngle = 0.0
 
     /**
      * Internal state machine phases.
@@ -63,9 +63,8 @@ class PushUpDetector : ExerciseDetector, IPushUpEngine {
             feedback = "Move closer to camera"
         )
 
-        // Anti-cheat: reject micro-movements
-        val angleDelta = kotlin.math.abs(averageAngle - lastAverageAngle)
-        lastAverageAngle = averageAngle
+        // Anti-cheat: reject micro-movements against the last confirmed top position.
+        val descentAngleDelta = topAngle - averageAngle
 
         // Calculate normalized vertical displacement (shoulder Y vs wrist Y)
         val avgShoulderY = (leftShoulder.y + rightShoulder.y) / 2f
@@ -81,6 +80,7 @@ class PushUpDetector : ExerciseDetector, IPushUpEngine {
             Phase.WAITING_FOR_TOP -> {
                 if (averageAngle > PoseConstants.ELBOW_EXTENSION_THRESHOLD_DEGREES) {
                     phase = Phase.TOP
+                    topAngle = averageAngle
                     ExerciseState(
                         repCount = repCount,
                         phase = ExercisePhase.ACTIVE,
@@ -100,7 +100,7 @@ class PushUpDetector : ExerciseDetector, IPushUpEngine {
             Phase.TOP -> {
                 if (averageAngle < PoseConstants.ELBOW_FLEXION_THRESHOLD_DEGREES
                     && normalizedYDisplacement >= PoseConstants.MIN_NORMALIZED_Y_DISPLACEMENT
-                    && angleDelta >= PoseConstants.MIN_ANGLE_DELTA_DEGREES
+                    && descentAngleDelta >= PoseConstants.MIN_ANGLE_DELTA_DEGREES
                 ) {
                     phase = Phase.BOTTOM
                     ExerciseState(
@@ -124,6 +124,7 @@ class PushUpDetector : ExerciseDetector, IPushUpEngine {
                     // Full cycle complete: TOP → BOTTOM → TOP
                     repCount++
                     phase = Phase.TOP
+                    topAngle = averageAngle
                     ExerciseState(
                         repCount = repCount,
                         phase = ExercisePhase.ACTIVE,
@@ -147,7 +148,7 @@ class PushUpDetector : ExerciseDetector, IPushUpEngine {
     override fun reset() {
         repCount = 0
         phase = Phase.WAITING_FOR_TOP
-        lastAverageAngle = 0.0
+        topAngle = 0.0
     }
 
     // NEW: IPushUpEngine implementation
