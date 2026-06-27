@@ -1,5 +1,4 @@
-#ifndef MATH_UTILS_H
-#define MATH_UTILS_H
+#pragma once
 
 namespace nativeengine {
 
@@ -13,5 +12,3 @@ float calculateAngle(float ax, float ay,
                      float cx, float cy);
 
 } // namespace nativeengine
-
-#endif // MATH_UTILS_H

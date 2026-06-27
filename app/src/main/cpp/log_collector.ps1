@@ -1,79 +1,56 @@
 <#
-# Performance & FPS Log Collector
+# FPS Log Collector
 
-log_collecter.ps1 automates the collection of performance benchmarks and renderer FPS from an Android device via `adb`.
+log_collector.ps1 collects renderer FPS from an Android device via `adb logcat`.
 
 ## Usage
 
-Run the script from a PowerShell terminal:
+    .\log_collector.ps1 <label>
 
-### 1. For Native C++ Engine
+Examples:
+    .\log_collector.ps1 baseline
+    .\log_collector.ps1 native-pipeline
 
-.\log_collector.ps1 native
-
-*Saves to: `logs/stats-native-fps.txt` and `logs/stats-native-perf.txt`*
-
-### 2. For Kotlin Engine
-
-.\log_collector.ps1 kotlin
-
-*Saves to: `logs/stats-kotlin-fps.txt` and `logs/stats-kotlin-perf.txt`*
-
-All logs are saved in:
-`app/src/main/cpp/logs/`
+Saves to: `logs/stats-<label>-fps.txt`
 #>
 
 param (
-    [string]$Engine = "native"
+    [string]$Label = "baseline"
 )
 
-# Set up paths
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $LogDir = Join-Path $ScriptDir "logs"
 
-# Ensure log directory exists
 if (!(Test-Path $LogDir)) {
     New-Item -ItemType Directory -Path $LogDir | Out-Null
 }
 
-# Set filenames
-$FpsFile = Join-Path $LogDir "stats-$Engine-fps.txt"
-$PerfFile = Join-Path $LogDir "stats-$Engine-perf.txt"
+$FpsFile = Join-Path $LogDir "stats-$Label-fps.txt"
 
-Write-Host "--- Log Collector ---" -ForegroundColor Cyan
-Write-Host "Engine: $Engine"
-Write-Host "Saving to: $LogDir"
+Write-Host "--- FPS Log Collector ---" -ForegroundColor Cyan
+Write-Host "Label: $Label"
+Write-Host "Saving to: $FpsFile"
 
-# 1. Clear logs
 Write-Host "Clearing logcat..."
 adb logcat -c
 
-# 2. Start logging jobs
-Write-Host "Starting background logging jobs..." -ForegroundColor Green
+Write-Host "Logging RENDERER_FPS..." -ForegroundColor Green
 
 $FpsJob = Start-Job -ScriptBlock {
     param($tag, $file)
     adb logcat -s $tag -v raw | Tee-Object -FilePath $file
 } -ArgumentList "RENDERER_FPS", $FpsFile
 
-$PerfJob = Start-Job -ScriptBlock {
-    param($tag, $file)
-    adb logcat -s $tag -v raw | Tee-Object -FilePath $file
-} -ArgumentList "PERF_BENCHMARK", $PerfFile
-
 Write-Host "--------------------------------------------------------"
 Write-Host "Logging is RUNNING."
 Write-Host "Press any key to STOP logging and exit."
 Write-Host "--------------------------------------------------------"
 
-# Wait for user input
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
-# Cleanup
-Write-Host "Stopping jobs..." -ForegroundColor Yellow
+Write-Host "Stopping..." -ForegroundColor Yellow
 Get-Job | Stop-Job
 Get-Job | Remove-Job
 
-Write-Host "Done. Logs saved to:"
+Write-Host "Done. Log saved to:"
 Write-Host "  - $FpsFile"
-Write-Host "  - $PerfFile"

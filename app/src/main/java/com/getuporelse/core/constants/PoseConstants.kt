@@ -40,8 +40,4 @@ object PoseConstants {
 
     // --- MediaPipe model ---
     const val POSE_MODEL_ASSET_PATH = "pose_landmarker_lite.task"
-
-    // --- Analysis frame resolution ---
-    const val ANALYSIS_TARGET_WIDTH = 640
-    const val ANALYSIS_TARGET_HEIGHT = 480
 }

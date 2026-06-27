@@ -4,17 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.getuporelse.BuildConfig
 import com.getuporelse.domain.alarm.AlarmController
-import com.getuporelse.domain.alarm.DebugAlarmController
-import com.getuporelse.domain.alarm.GetAlarmSettingsUseCase
+import com.getuporelse.domain.alarm.AlarmRepository
 import com.getuporelse.domain.alarm.ScheduleAlarmUseCase
-import com.getuporelse.domain.alarm.UpdateAlarmSettingsUseCase
 import com.getuporelse.domain.exercise.ExerciseDetector
 import com.getuporelse.domain.models.Alarm
 import com.getuporelse.domain.models.AlarmSettings
 import com.getuporelse.domain.pose.PoseAnalyzer
 import com.getuporelse.domain.pose.PoseResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,11 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
-    private val getAlarmSettingsUseCase: GetAlarmSettingsUseCase,
+    private val alarmRepository: AlarmRepository,
     private val scheduleAlarmUseCase: ScheduleAlarmUseCase,
-    private val updateAlarmSettingsUseCase: UpdateAlarmSettingsUseCase,
     private val alarmController: AlarmController,
-    private val debugAlarmController: DebugAlarmController,
     val poseAnalyzer: PoseAnalyzer,
     private val exerciseDetector: ExerciseDetector
 ) : ViewModel() {
@@ -45,7 +40,7 @@ class AlarmViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getAlarmSettingsUseCase().collectLatest { settings ->
+            alarmRepository.getAlarmSettings().collectLatest { settings ->
                 _settings.value = settings
                 _uiState.update { it.copy(targetReps = settings.targetReps) }
                 poseAnalyzer.updateGpuSetting(settings.useGpu)
@@ -199,21 +194,21 @@ class AlarmViewModel @Inject constructor(
         viewModelScope.launch {
             val currentSettings = _settings.value
             val newSettings = currentSettings.copy(useGpu = useGpu)
-            updateAlarmSettingsUseCase(newSettings)
+            alarmRepository.updateAlarmSettings(newSettings)
         }
     }
 
     fun triggerDebugAlarm() {
         if (!BuildConfig.DEBUG) return
 
-        debugAlarmController.triggerAlarm()
+        alarmController.triggerAlarm(_settings.value.targetReps)
         setRinging(true)
     }
 
     fun stopDebugAlarm() {
         if (!BuildConfig.DEBUG) return
 
-        debugAlarmController.stopAlarm()
+        alarmController.stopAlarm()
         setRinging(false)
     }
 

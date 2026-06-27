@@ -12,6 +12,7 @@ import com.getuporelse.core.constants.Constants
 import com.getuporelse.domain.alarm.AlarmRepository
 import com.getuporelse.domain.models.Alarm
 import com.getuporelse.domain.models.AlarmSettings
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -21,7 +22,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @Singleton
 class DataStoreAlarmRepository @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) : AlarmRepository {
 
     private object PreferencesKeys {

@@ -7,11 +7,12 @@ import android.content.Intent
 import android.os.Build
 import com.getuporelse.domain.alarm.AlarmScheduler
 import com.getuporelse.domain.models.Alarm
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
 import javax.inject.Inject
 
 class AndroidAlarmScheduler @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) : AlarmScheduler {
 
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
