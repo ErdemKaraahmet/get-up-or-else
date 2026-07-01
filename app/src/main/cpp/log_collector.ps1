@@ -5,17 +5,22 @@ log_collector.ps1 collects renderer FPS from an Android device via `adb logcat`.
 
 ## Usage
 
-    .\log_collector.ps1 <label>
+    .\log_collector.ps1 [<label>] [<seconds>]
+
+Parameters:
+    Label    - Name label for the log file (default: "baseline")
+    Seconds  - Duration in seconds to log. If 0 or omitted, logs indefinitely until a keypress or Ctrl+C (default: 0)
 
 Examples:
-    .\log_collector.ps1 baseline
-    .\log_collector.ps1 native-pipeline
+    .\log_collector.ps1 test
+    .\log_collector.ps1 test 15
 
 Saves to: `logs/stats-<label>-fps.txt`
 #>
 
 param (
-    [string]$Label = "baseline"
+    [string]$Label = "baseline",
+    [int]$Seconds = 0
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -41,16 +46,22 @@ $FpsJob = Start-Job -ScriptBlock {
     adb logcat -s $tag -v raw | Tee-Object -FilePath $file
 } -ArgumentList "RENDERER_FPS", $FpsFile
 
-Write-Host "--------------------------------------------------------"
-Write-Host "Logging is RUNNING."
-Write-Host "Press any key to STOP logging and exit."
-Write-Host "--------------------------------------------------------"
+try {
+    if ($Seconds -gt 0) {
+        Write-Host "Logging for $Seconds seconds... Press Ctrl+C to abort." -ForegroundColor Green
+        Start-Sleep -Seconds $Seconds
+    } else {
+        Write-Host "--------------------------------------------------------"
+        Write-Host "Logging is RUNNING."
+        Write-Host "Press any key to STOP logging and exit."
+        Write-Host "--------------------------------------------------------"
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+} finally {
+    Write-Host "Stopping..." -ForegroundColor Yellow
+    Get-Job | Stop-Job
+    Get-Job | Remove-Job
 
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-
-Write-Host "Stopping..." -ForegroundColor Yellow
-Get-Job | Stop-Job
-Get-Job | Remove-Job
-
-Write-Host "Done. Log saved to:"
-Write-Host "  - $FpsFile"
+    Write-Host "Done. Log saved to:"
+    Write-Host "  - $FpsFile"
+}
