@@ -33,6 +33,20 @@ jobs:
           echo "Extracted version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Generate Changelog
+        id: generate_changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          if [ -z "$PREV_TAG" ]; then
+            echo "::error::Could not find previous release tag"
+            exit 1
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## What's Changed" >> $GITHUB_ENV
+          git log "$PREV_TAG"..HEAD^ --pretty=format:"• %s in %h" >> $GITHUB_ENV
+          echo -e "\n\nFull Changelog: [$PREV_TAG...${{ env.VERSION }}](https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ env.VERSION }})" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Create and push Git tag
         run: |
           git config user.name "github-actions[bot]"
@@ -75,5 +89,6 @@ jobs:
         with:
           tag_name: ${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
+          body: ${{ env.CHANGELOG }}
           files: ${{ steps.sign_apk.outputs.signedReleaseFile }}
-          generate_release_notes: true
+          generate_release_notes: false
