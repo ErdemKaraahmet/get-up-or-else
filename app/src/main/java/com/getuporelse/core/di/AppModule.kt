@@ -8,7 +8,7 @@ import com.getuporelse.data.repository.DataStoreAlarmRepository
 import com.getuporelse.domain.alarm.AlarmController
 import com.getuporelse.domain.alarm.AlarmRepository
 import com.getuporelse.domain.alarm.AlarmScheduler
-import com.getuporelse.domain.exercise.DualEngineExerciseDetector
+import com.getuporelse.domain.exercise.NativeExerciseDetector
 import com.getuporelse.domain.exercise.ExerciseDetector
 import com.getuporelse.domain.pose.PoseAnalyzer
 import dagger.Binds
@@ -53,5 +53,5 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideExerciseDetector(): ExerciseDetector = DualEngineExerciseDetector()
+    fun provideExerciseDetector(): ExerciseDetector = NativeExerciseDetector()
 }

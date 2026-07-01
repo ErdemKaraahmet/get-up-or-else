@@ -10,6 +10,7 @@ import kotlin.math.sqrt
  */
 data class PoseResult(
     val landmarks: List<PoseLandmark>,
+    val flatLandmarks: FloatArray,
     val timestamp: Long
 ) {
 
@@ -49,7 +50,7 @@ data class PoseResult(
 
     companion object {
         /** Empty result for initialization */
-        val EMPTY = PoseResult(emptyList(), 0L)
+        val EMPTY = PoseResult(emptyList(), FloatArray(0), 0L)
 
         /**
          * Calculates the angle at point [b] formed by the vectors b→a and b→c.
@@ -72,9 +73,9 @@ data class PoseResult(
 }
 
 data class PoseLandmark(
-    val x: Float,
-    val y: Float,
-    val z: Float,
-    val presence: Float,
-    val visibility: Float
+    var x: Float,
+    var y: Float,
+    var z: Float,
+    var presence: Float,
+    var visibility: Float
 )

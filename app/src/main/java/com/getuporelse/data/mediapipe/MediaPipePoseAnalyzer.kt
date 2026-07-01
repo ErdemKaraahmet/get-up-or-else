@@ -10,6 +10,7 @@ import com.getuporelse.core.constants.PoseConstants
 import com.getuporelse.domain.pose.PoseAnalyzer
 import com.getuporelse.domain.pose.PoseLandmark
 import com.getuporelse.domain.pose.PoseResult
+import com.getuporelse.domain.exercise.IPushUpEngine
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -34,7 +35,10 @@ class MediaPipePoseAnalyzer @Inject constructor(
 
     private var resultListener: ((PoseResult) -> Unit)? = null
     private var errorListener: ((Exception) -> Unit)? = null
-    private val smoother = LandmarkSmoother()
+
+    // Pre-allocated cache structures for zero-allocation performance, reuse to prevent GC thrashing
+    private val landmarkCache = List(IPushUpEngine.LANDMARKS_COUNT) { PoseLandmark(0f, 0f, 0f, 0f, 0f) }
+    private val flatLandmarkCache = FloatArray(IPushUpEngine.TOTAL_FLOAT_COUNT)
 
 
     private var poseLandmarker: PoseLandmarker? = null
@@ -151,36 +155,48 @@ class MediaPipePoseAnalyzer @Inject constructor(
         poseLandmarker?.close()
         poseLandmarker = null
         isInitialized = false
-        smoother.reset()
     }
 
     private fun handleResult(result: PoseLandmarkerResult) {
         val landmarks = result.landmarks()
         if (landmarks.isEmpty() || landmarks[0].isEmpty()) {
-            smoother.reset()
             resultListener?.invoke(PoseResult.EMPTY)
             return
         }
 
-        // Map MediaPipe landmarks to domain model
-        val rawLandmarks = landmarks[0].map { landmark ->
-            PoseLandmark(
-                x = landmark.x(),
-                y = landmark.y(),
-                z = landmark.z(),
-                presence = landmark.presence().orElse(0f),
-                visibility = landmark.visibility().orElse(0f)
-            )
+        // Write directly to the pre-allocated cache arrays
+        val mpList = landmarks[0]
+        for (i in 0 until IPushUpEngine.LANDMARKS_COUNT) {
+            val lm = mpList.getOrNull(i)
+            val cacheLm = landmarkCache[i]
+            if (lm != null) {
+                cacheLm.x = lm.x()
+                cacheLm.y = lm.y()
+                cacheLm.z = lm.z()
+                cacheLm.presence = lm.presence().orElse(0f)
+                cacheLm.visibility = lm.visibility().orElse(0f)
+            } else {
+                cacheLm.x = 0f
+                cacheLm.y = 0f
+                cacheLm.z = 0f
+                cacheLm.presence = 0f
+                cacheLm.visibility = 0f
+            }
+
+            val base = i * 5
+            flatLandmarkCache[base] = cacheLm.x
+            flatLandmarkCache[base + 1] = cacheLm.y
+            flatLandmarkCache[base + 2] = cacheLm.z
+            flatLandmarkCache[base + 3] = cacheLm.presence
+            flatLandmarkCache[base + 4] = cacheLm.visibility
         }
 
-        // Apply EMA smoothing
-        val smoothedLandmarks = smoother.smoothAll(rawLandmarks)
-
-        val poseResult = PoseResult(
-            landmarks = smoothedLandmarks,
-            timestamp = result.timestampMs()
+        resultListener?.invoke(
+            PoseResult(
+                landmarks = landmarkCache,
+                flatLandmarks = flatLandmarkCache,
+                timestamp = result.timestampMs()
+            )
         )
-
-        resultListener?.invoke(poseResult)
     }
 }

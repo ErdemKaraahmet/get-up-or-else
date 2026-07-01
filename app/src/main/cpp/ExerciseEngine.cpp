@@ -41,8 +41,9 @@ int ExerciseEngine::getRepCount() const {
 // ── Per-frame processing ────────────────────────────────────────────
 
 int ExerciseEngine::processFrame(const float* rawLandmarks) {
-    // 1. (Removed EMA smoothing because MediaPipePoseAnalyzer already smooths)
-    const float* smoothed = rawLandmarks;
+    // 1. Apply EMA smoothing on the native side, inline stack buffer to save allocations
+    float smoothed[kBufferSize];
+    smoother_.smoothAll(rawLandmarks, smoothed, kLandmarksCount);
 
     // 2. Visibility check for the 6 arm landmarks
     static constexpr int kArmIndices[] = {
@@ -88,7 +89,7 @@ int ExerciseEngine::processFrame(const float* rawLandmarks) {
     const double avgWristY   = (static_cast<double>(lwY) + static_cast<double>(rwY)) / 2.0;
     const double normalizedYDisplacement =
         (interShoulderDistance > 0.0)
-            ? std::abs(avgShoulderY - avgWristY) / interShoulderDistance
+            ? std::fabs(avgShoulderY - avgWristY) / interShoulderDistance
             : 0.0;
 
     // 7. Compute total descent from the last confirmed top for noise rejection

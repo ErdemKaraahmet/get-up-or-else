@@ -8,7 +8,7 @@ import com.getuporelse.domain.pose.PoseResult
  * Native C++ exercise detector.
  * Logs end-to-end FPS under the RENDERER_FPS logcat tag for benchmarking.
  */
-class DualEngineExerciseDetector : ExerciseDetector {
+class NativeExerciseDetector : ExerciseDetector {
 
     private val nativeEngine = NativePushUpEngine()
 
@@ -32,18 +32,8 @@ class DualEngineExerciseDetector : ExerciseDetector {
         }
         lastFrameTimeNs = currentFrameTimeNs
 
-        // Serialize landmarks to flat FloatArray
-        val flat = FloatArray(IPushUpEngine.TOTAL_FLOAT_COUNT)
-        result.landmarks.forEachIndexed { i, lm ->
-            val base = i * IPushUpEngine.PARAMS_PER_LANDMARK
-            flat[base] = lm.x
-            flat[base + 1] = lm.y
-            flat[base + 2] = lm.z
-            flat[base + 3] = lm.presence
-            flat[base + 4] = lm.visibility
-        }
-
-        val nativeResult = nativeEngine.processFrame(flat)
+        // Forward pre-serialized landmarks directly to NDK, zero heap allocations
+        val nativeResult = nativeEngine.processFrame(result.flatLandmarks)
 
         val nativeReps = IPushUpEngine.unpackRepCount(nativeResult)
         val nativePhase = IPushUpEngine.unpackPhase(nativeResult)

@@ -14,7 +14,7 @@ float calculateAngle(float ax, float ay,
     double radians = std::atan2(static_cast<double>(cy - by), static_cast<double>(cx - bx))
                    - std::atan2(static_cast<double>(ay - by), static_cast<double>(ax - bx));
     double degrees = radians * (180.0 / M_PI);
-    degrees = std::abs(degrees);
+    degrees = std::fabs(degrees);
     if (degrees > 180.0) {
         degrees = 360.0 - degrees;
     }
